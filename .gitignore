@@ -179,3 +179,52 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual Environments
+venv/
+env/
+.venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Data (DO NOT PUSH DATASETS)
+data/raw/
+data/processed/
+
+# Models
+models/
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# Logs
+logs/
+*.log
+
+# Environment Variables
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Frontend
+node_modules/
+dist/
+build/
+
+# Firebase
+firebase-debug.log
+.firebaserc
