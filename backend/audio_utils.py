@@ -78,23 +78,16 @@ def calculate_engagement(file_path):
         return 0.0
 
 def analyze_audio_file(file_path):
-    """
-    The master function called by the web server. Returns the final JSON-ready dictionary.
-    """
-    # 1. Get scaled features
     input_features = process_audio(file_path)
-    
-    # 2. Predict using the neural network
     preds = model.predict(input_features, verbose=0)[0]
     
-    # 3. Calculate final scores
     predicted_emotion = classes[np.argmax(preds)]
     confidence = calculate_confidence(preds)
     engagement = calculate_engagement(file_path)
     
-    # 4. Return as a dictionary
+    # 4. Return as a dictionary (CASTED TO NATIVE PYTHON TYPES)
     return {
-        "detected_tone": predicted_emotion,
-        "confidence_score": confidence,
-        "engagement_score": engagement
+        "detected_tone": str(predicted_emotion),
+        "confidence_score": float(confidence),
+        "engagement_score": float(engagement)
     }
