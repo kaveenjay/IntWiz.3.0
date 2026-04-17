@@ -80,14 +80,50 @@ def calculate_engagement(file_path):
 def analyze_audio_file(file_path):
     input_features = process_audio(file_path)
     preds = model.predict(input_features, verbose=0)[0]
-    
+
     predicted_emotion = classes[np.argmax(preds)]
     confidence = calculate_confidence(preds)
     engagement = calculate_engagement(file_path)
-    
+
     # 4. Return as a dictionary (CASTED TO NATIVE PYTHON TYPES)
     return {
         "detected_tone": str(predicted_emotion),
         "confidence_score": float(confidence),
         "engagement_score": float(engagement)
     }
+
+def convert_to_standard_wav(input_path: str, output_path: str) -> bool:
+    """
+    Converts any audio file to standardized 16kHz mono wav format using FFmpeg.
+
+    Browser MediaRecorder outputs webm by default. Our ML model was trained on
+    16kHz mono wav files, so we must convert before feature extraction.
+
+    Args:
+        input_path: Path to the original audio file (any format)
+        output_path: Path where the converted wav will be saved
+
+    Returns:
+        True if conversion succeeded, raises Exception if failed
+    """
+    import subprocess
+
+    # FFmpeg command: force overwrite (-y), input file (-i), 16kHz sample rate (-ar),
+    # mono channel (-ac 1), PCM 16-bit encoding (-c:a pcm_s16le)
+    command = [
+        'ffmpeg', '-y', '-i', input_path,
+        '-ar', '16000',
+        '-ac', '1',
+        '-c:a', 'pcm_s16le',
+        output_path
+    ]
+
+    try:
+        result = subprocess.run(command, capture_output=True, text=True)
+        if result.returncode != 0:
+            raise Exception(f"FFmpeg conversion failed: {result.stderr}")
+        return True
+    except FileNotFoundError:
+        raise Exception("FFmpeg not found. Install from https://ffmpeg.org/download.html and add to PATH")
+    except Exception as e:
+        raise Exception(f"Audio conversion error: {str(e)}")
