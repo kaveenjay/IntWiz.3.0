@@ -2,9 +2,19 @@ from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import shutil
 import os
+from dotenv import load_dotenv
+from groq import Groq
 
 # Import ML function
 from audio_utils import analyze_audio_file
+
+# Load environment variables
+load_dotenv()
+
+# Initialize Groq client for LLM inference and transcription
+# Groq provides free access to Llama 3.3 70B (text generation) and Whisper large v3
+# (audio transcription) with no regional restrictions, making it ideal for our Sri Lankan user base
+groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # 1. SERVER INITIALIZATION
 app = FastAPI(
