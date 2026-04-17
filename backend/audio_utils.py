@@ -135,3 +135,70 @@ def convert_to_standard_wav(input_path: str, output_path: str) -> bool:
         raise Exception("FFmpeg not found. Install from https://ffmpeg.org/download.html and add to PATH")
     except Exception as e:
         raise Exception(f"Audio conversion error: {str(e)}")
+
+def calculate_fluency_metrics(transcript: str, duration_seconds: float) -> dict:
+    """
+    Calculates speech fluency metrics from transcribed text.
+
+    This is deliberately rule-based rather than ML-based because filler word
+    counting is a deterministic problem with a ground truth answer. A probabilistic
+    model would reduce explainability without improving accuracy.
+
+    Metrics:
+    - Words Per Minute (WPM): Speech rate normalized to 60-second window
+    - Filler word count: Instances of hesitation markers (um, uh, like, etc.)
+    - Fluency score: 100-point scale with configurable penalty per filler
+
+    Args:
+        transcript: Text output from speech-to-text (e.g., Whisper)
+        duration_seconds: Length of the audio clip
+
+    Returns:
+        Dictionary with wpm, filler_word_count, filler_words_detected, fluency_score
+    """
+    # Configurable penalty weight - optimized for intuitive scoring breakpoints
+    # (0 fillers=100, 5=60, 12=0). In production, this would be empirically validated
+    # using regression against human expert ratings of interview fluency.
+    FILLER_PENALTY = 8
+
+    # Handle edge cases: empty transcript or zero duration
+    if not transcript or not transcript.strip() or duration_seconds <= 0:
+        return {
+            "wpm": 0.0,
+            "filler_word_count": 0,
+            "filler_words_detected": [],
+            "fluency_score": 100.0
+        }
+
+    # Calculate words per minute
+    words = transcript.split()
+    word_count = len(words)
+    wpm = round((word_count / duration_seconds) * 60, 1)
+
+    # Define common filler words and phrases
+    # Includes both single words (um, uh) and multi-word hesitation markers
+    filler_words_list = [
+        "um", "uh", "like", "you know", "basically",
+        "literally", "so yeah", "right so"
+    ]
+
+    # Count filler word occurrences (case-insensitive)
+    transcript_lower = transcript.lower()
+    total_filler_count = 0
+    detected_fillers = []
+
+    for filler in filler_words_list:
+        count = transcript_lower.count(filler)
+        if count > 0:
+            total_filler_count += count
+            detected_fillers.append(filler)
+
+    # Calculate fluency score: start at 100, apply penalty per filler
+    fluency_score = max(0.0, round(100.0 - (total_filler_count * FILLER_PENALTY), 1))
+
+    return {
+        "wpm": wpm,
+        "filler_word_count": total_filler_count,
+        "filler_words_detected": detected_fillers,
+        "fluency_score": fluency_score
+    }
