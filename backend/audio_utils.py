@@ -32,7 +32,15 @@ print("✅ Models Loaded Successfully.")
 
 def process_audio(file_path):
     """
-    Loads an audio file, pads/truncates it to 4 seconds, and extracts the 193 DSP features.
+    Extracts 193 acoustic features from a 4-second audio clip.
+        
+    Pipeline:
+    1. Load audio with librosa at 22,050 Hz sample rate
+    2. Pad or truncate to exactly 4 seconds (88,200 samples)
+    3. Extract MFCCs (40), Chroma (12), Mel (128), Contrast (7), Tonnetz (6)
+    4. Flatten into 1D array and standardize using saved scaler
+    
+    Returns: Scaled feature vector ready for TensorFlow model inference  
     """
     y, sr = librosa.load(file_path, sr=SAMPLE_RATE)
     
