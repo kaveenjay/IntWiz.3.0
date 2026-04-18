@@ -53,3 +53,59 @@ The current value of 8 provides reasonable relative rankings for demonstration a
 
 **Academic Note:**
 This design decision reflects a common trade-off in applied AI systems: starting with reasonable heuristics for rapid prototyping, then validating against empirical data before production deployment. The use of a configurable constant (rather than a hard-coded magic number) demonstrates engineering best practices for systems expected to evolve.
+
+
+## Why TF-IDF Over Neural Embeddings for Relevance Scoring?
+
+**Decision:** Use sklearn TF-IDF + cosine similarity for semantic relevance matching
+
+**Alternatives Considered:**
+- **BERT/Sentence Transformers:** Pre-trained transformer models that understand semantic meaning beyond exact word matches
+- **Word2Vec/GloVe:** Word embedding models trained on large corpora
+- **Hybrid approach:** Combine TF-IDF (keyword matching) with BERT (semantic matching)
+
+**Justification:**
+
+| Factor | TF-IDF | BERT | Hybrid |
+|--------|--------|------|--------|
+| Inference Speed | ~5ms | ~200-500ms | ~200-500ms |
+| Model Size | 0MB (no weights) | 400MB+ | 400MB+ |
+| Synonym Handling | ❌ Poor | ✅ Excellent | ✅ Excellent |
+| Keyword Precision | ✅ Exact matches | ⚠️ May over-generalize | ✅ Best of both |
+| Deterministic | ✅ Always | ❌ Model version dependent | ❌ Model dependent |
+| Explainability | ✅ Clear | ❌ Black box | ⚠️ Complex |
+
+**Why TF-IDF Was Selected:**
+
+1. **Computational Efficiency:** Real-time interview systems require sub-second response times. TF-IDF's 5ms inference allows for responsive user experience, while BERT's 200-500ms latency would introduce noticeable delays.
+
+2. **Keyword Specificity in Technical Contexts:** For technical interviews, exact terminology usage is a signal of domain expertise. When a job description requires "Python" and a candidate says "a popular programming language," TF-IDF correctly scores this as low relevance, whereas BERT might incorrectly match them semantically.
+
+3. **Determinism:** TF-IDF produces identical results for identical inputs, which:
+   - Aids debugging during development
+   - Ensures reproducible results for testing
+   - Allows clear explanation to users ("You scored low because you didn't mention Python, SQL, or data visualization")
+
+4. **Deployment Constraints:** Free-tier cloud hosting (target for student project) often has:
+   - RAM limits (512MB-1GB) — BERT models require 2GB+
+   - No GPU access — BERT on CPU is 5-10x slower
+   - Storage limits — 400MB model files significant overhead
+
+**Acknowledged Limitations:**
+
+TF-IDF cannot handle:
+- Synonyms: "machine learning" vs "ML"
+- Paraphrasing: "data analysis" vs "examining datasets"
+- Semantic similarity: "Python programming" vs "writing code in Python"
+
+This means candidates who express ideas differently (but correctly) may score lower than they should.
+
+**Future Work:**
+
+A production system could implement **lightweight hybrid scoring**:
+1. Use `sentence-transformers/all-MiniLM-L6-v2` (80MB model, 50ms inference)
+2. Calculate both TF-IDF and embedding similarity
+3. Weighted combination: `final_score = (0.6 × tfidf_score) + (0.4 × embedding_score)`
+4. Validate weights using A/B testing against user feedback
+
+For the current prototype, TF-IDF provides sufficient relevance detection while maintaining the system's core objectives of speed and explainability.

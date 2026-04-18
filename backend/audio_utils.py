@@ -202,3 +202,57 @@ def calculate_fluency_metrics(transcript: str, duration_seconds: float) -> dict:
         "filler_words_detected": detected_fillers,
         "fluency_score": fluency_score
     }
+
+def calculate_relevance_score(transcript: str, reference_text: str) -> float:
+    """
+    Calculates semantic relevance between candidate's answer and job requirements.
+
+    Uses TF-IDF (Term Frequency-Inverse Document Frequency) vectorization and
+    cosine similarity to measure how closely the candidate's response aligns with
+    the combined CV and job description text.
+
+    Why TF-IDF over neural embeddings (BERT, Word2Vec)?
+    1. Deterministic - same input always produces same output
+    2. Lightweight - no GPU required, runs in milliseconds
+    3. Keyword-focused - for technical interviews, exact term usage (Python, SQL)
+       demonstrates domain knowledge better than semantic paraphrasing
+
+    How it works:
+    - TF (Term Frequency): How often a word appears in the text
+    - IDF (Inverse Document Frequency): How rare/important the word is
+    - TF-IDF gives high scores to important words (Python, machine learning)
+      and low scores to common words (the, and, is)
+    - Cosine similarity measures the angle between the two TF-IDF vectors
+      (0° = identical topics, 90° = unrelated)
+
+    Args:
+        transcript: The candidate's spoken answer (from speech-to-text)
+        reference_text: Combined CV text + job description text
+
+    Returns:
+        Relevance score from 0-100 (0 = completely unrelated, 100 = perfect match)
+    """
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_similarity
+
+    # Edge case: if either text is too short, return neutral score
+    # Less than 10 words doesn't provide enough context for meaningful comparison
+    if len(transcript.split()) < 10 or len(reference_text.split()) < 10:
+        return 50.0
+
+    # Create TF-IDF vectorizer
+    # This will convert text into numerical vectors where each dimension represents
+    # the importance of a specific word
+    vectorizer = TfidfVectorizer()
+
+    # Transform both texts into TF-IDF vectors
+    # fit_transform() builds the vocabulary and converts texts to vectors in one step
+    tfidf_matrix = vectorizer.fit_transform([transcript, reference_text])
+
+    # Calculate cosine similarity between the two vectors
+    # tfidf_matrix[0:1] = candidate's answer vector
+    # tfidf_matrix[1:2] = reference text vector
+    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+
+    # Convert from 0-1 scale to 0-100 percentage for user-friendly display
+    return round(float(similarity * 100), 1)
