@@ -8,3 +8,4 @@ tensorflow
 joblib
 python-dotenv
 groq
+pymupdf
