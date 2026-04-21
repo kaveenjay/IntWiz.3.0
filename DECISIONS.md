@@ -109,3 +109,115 @@ A production system could implement **lightweight hybrid scoring**:
 4. Validate weights using A/B testing against user feedback
 
 For the current prototype, TF-IDF provides sufficient relevance detection while maintaining the system's core objectives of speed and explainability.
+
+---
+
+## Acoustic Model Limitations — Training Data Mismatch
+
+**Issue Identified:** Confidence and engagement scores often appear lower than expected for professional interview speech
+
+**Root Cause:**
+The emotion recognition model was trained on datasets of **acted emotional expressions** (RAVDESS, TESS, CREMA-D, SAVEE) where professional actors perform exaggerated emotions for research purposes. This creates a fundamental distribution mismatch when the model is applied to real-world interview speech.
+
+**Specific Problems:**
+
+### 1. Engagement Score Bias
+The engagement calculation uses:
+```python
+raw_engagement = (energy_std * 1000) + (pitch_std / 20)
+```
+
+This formula rewards:
+- **High volume variation** (energy_std) = interpreted as "engaged"
+- **High pitch variation** (pitch_std) = interpreted as "dynamic"
+
+However, in professional interview contexts:
+- **Controlled volume** = signals confidence (but scores LOW on energy_std)
+- **Stable pitch** = signals composure (but scores LOW on pitch_std)
+- **Nervous delivery** with erratic pitch/volume = scores HIGH (incorrectly)
+
+**The formula optimizes for theatrical expressiveness, not professional communication quality.**
+
+### 2. Emotion Classification Accuracy
+Training data emotions are exaggerated theatrical performances:
+- "Happy" in RAVDESS = enthusiastic, high-pitched, energetic
+- "Angry" in CREMA-D = loud, aggressive, intense
+- "Neutral" in TESS = flat, monotone, deliberately unexpressive
+
+Real interview speech is measured and controlled:
+- Professional confidence is steady and calm
+- This often gets misclassified as "neutral" or even "disgust" (low arousal emotions)
+- Conversely, nervous energy might score higher on engagement metrics
+
+### 3. Empirical Evidence
+Testing with identical text but different delivery styles:
+
+| Delivery Style | Detected Tone | Confidence | Engagement | Expected Rating |
+|----------------|---------------|------------|------------|-----------------|
+| Flat/monotone recording | disgust | 37% | 31.31 | Should be "poor" ✅ |
+| Energetic/higher pitch | neutral | 62% | 39.63 | Should be "good" ❌ |
+| Professional/controlled | neutral | 62% | 39.63 | Should be "excellent" ❌ |
+
+The model cannot distinguish between "professional composure" and "low engagement."
+
+**Why This Wasn't Detected During Development:**
+- Model validation used held-out samples from the same acted speech datasets
+- Validation accuracy (65%) reflected performance on similar theatrical data
+- No validation was performed on real interview audio (unavailable during training)
+- This is a **dataset domain shift problem**, not a modeling error
+
+**Current System Impact:**
+- **Acoustic features (emotion, engagement):** Limited reliability for interview assessment
+- **Linguistic features (fluency, relevance, STAR):** Perform accurately on real speech
+- System remains functional as a **multimodal demonstrator** but acoustic scores should be weighted lower in final scoring
+
+**Mitigation Strategies Considered:**
+
+| Strategy | Feasibility | Impact |
+|----------|-------------|--------|
+| Fine-tune on interview data | ❌ No labeled interview corpus available | High |
+| Lower acoustic score weights | ✅ Implemented in scoring fusion (Phase 3) | Medium |
+| Retrain engagement formula | ❌ Requires ground truth labels | High |
+| Add calibration warnings to UI | ✅ Could implement | Low |
+| Replace with pause/filler metrics | ✅ Already have filler detection | Medium |
+
+**Future Work — Production Requirements:**
+
+To deploy this system for actual interview preparation, the acoustic model would require:
+
+1. **Domain-Specific Training Data:**
+   - Collect 500+ real interview recordings
+   - Have HR professionals/interview coaches label each for:
+     * Confidence level (1-10 scale)
+     * Engagement quality (1-10 scale)
+     * Professionalism (1-10 scale)
+   - Fine-tune model on this labeled interview corpus
+
+2. **Engagement Metric Redesign:**
+   - Current: `(volume_variance × 1000) + (pitch_variance / 20)`
+   - Proposed: Combination of:
+     * Speech rate consistency (steady pace = confident)
+     * Pause patterns (natural pauses = composed, excessive = hesitant)
+     * Filler word ratio (already implemented)
+     * Volume floor (too quiet = uncertain, steady moderate = professional)
+
+3. **Multi-Task Learning:**
+   - Train single model with multiple outputs:
+     * Emotion classification
+     * Confidence regression
+     * Engagement regression
+     * Interview suitability binary classification
+   - Shared representations but task-specific heads
+
+**Academic Value of This Limitation:**
+
+This finding itself constitutes a research contribution: it empirically demonstrates that **emotion recognition models trained on acted speech do not generalize to professional communication contexts**, even though both domains involve human speech.
+
+This highlights:
+- The critical importance of domain-matched training data
+- The risk of deploying academic datasets in production contexts without validation
+- The difference between "emotion" (what the person feels) and "delivery quality" (how professionally they communicate)
+
+**Conclusion:**
+
+The acoustic model serves its purpose as a proof-of-concept for multimodal analysis architecture. However, the current implementation prioritizes **linguistic analysis** (fluency, relevance, STAR structure) which performs reliably on real interview speech. The acoustic features remain in the system to demonstrate the multimodal approach but should be weighted appropriately in final scoring until domain-specific recalibration is performed.

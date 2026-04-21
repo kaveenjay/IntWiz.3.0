@@ -8,8 +8,14 @@ from dotenv import load_dotenv
 from groq import Groq
 import fitz  # PyMuPDF for PDF text extraction
 
-# Import ML function
-from audio_utils import analyze_audio_file
+# Import ML functions
+import librosa
+from audio_utils import (
+    analyze_audio_file,
+    convert_to_standard_wav,
+    calculate_fluency_metrics,
+    calculate_relevance_score,
+)
 
 # Load environment variables
 load_dotenv()
@@ -98,40 +104,109 @@ def read_root():
     return {"message": "IntWiz Acoustic Engine API is Online"}
 
 @app.post("/analyze-audio/")
-async def analyze_audio(file: UploadFile = File(...)):
+async def analyze_audio(
+    file: UploadFile = File(...),
+    cv_text: str = Form(""),
+    job_description_text: str = Form(""),
+    question: str = Form("")
+):
     """
-    The core endpoint. It expects a POST request containing an audio file.
-    """
-    # 1. Security/Validation: Ensure they actually uploaded an audio file
-    valid_extensions = ('.wav', '.mp3', '.ogg')
-    if not file.filename.endswith(valid_extensions):
-        raise HTTPException(status_code=400, detail="Invalid file format. Please upload a .wav file.")
+    Performs comprehensive multimodal analysis of interview audio.
 
-    # 2. Temporary Storage: Librosa requires a physical file path to read audio.
-    # So, we take the incoming internet stream and save it locally.
+    Pipeline:
+    1. FFmpeg conversion (browser webm → 16kHz mono wav)
+    2. Whisper transcription (speech-to-text)
+    3. Acoustic emotion analysis (TensorFlow MLP on 193 features)
+    4. Fluency metrics (WPM, filler word detection)
+    5. Relevance scoring (TF-IDF vs CV+JD if provided)
+    6. STAR method analysis (LLM-based structural assessment)
+
+    Returns integrated scores from acoustic (emotion, engagement) and
+    linguistic (fluency, relevance, structure) modalities.
+    """
+    # Browser MediaRecorder outputs webm by default - we must accept it then convert via FFmpeg
+    # Includes .m4a (Apple audio format commonly used on iPhone/Mac)
+    valid_extensions = ('.wav', '.mp3', '.ogg', '.webm', '.mp4', '.m4a')
+    if not file.filename.endswith(valid_extensions):
+        raise HTTPException(status_code=400, detail="Invalid file format. Please upload a .wav, .mp3, .ogg, .webm, or .mp4 file.")
+
     file_path = os.path.join(TEMP_DIR, file.filename)
+    converted_path = file_path.replace(os.path.splitext(file_path)[1], "_converted.wav")
+
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
     try:
-        # 3. AI Processing: Pass the saved file to our ML engine
-        results = analyze_audio_file(file_path)
-        
-        # 4. Cleanup: Delete the file so the laptop's storage doesn't fill up
+        # 1. Convert to standardized format (16kHz mono wav) before processing
+        convert_to_standard_wav(file_path, converted_path)
+
+        # 2. Acoustic emotion analysis
+        results = analyze_audio_file(converted_path)
+
+        # 3. Transcribe audio to text using Whisper
+        transcript = transcribe_with_groq(converted_path)
+
+        # 4. Calculate audio duration
+        y_temp, sr_temp = librosa.load(converted_path, sr=None)
+        duration_seconds = float(len(y_temp) / sr_temp)
+
+        # 5. Fluency metrics
+        fluency = calculate_fluency_metrics(transcript, duration_seconds)
+
+        # 6. Relevance score against CV + JD if context was provided
+        reference = cv_text + " " + job_description_text
+        relevance_score = calculate_relevance_score(transcript, reference) if len(reference.strip()) > 20 else 50.0
+
+        # 7. STAR method structural analysis via LLM
+        star_prompt = f"""Analyze this interview answer and return ONLY valid JSON with no markdown, no backticks:
+{{
+  "star_score": <integer 0-100>,
+  "star_feedback": "<one sentence feedback>",
+  "has_situation": <true or false>,
+  "has_action": <true or false>,
+  "has_result": <true or false>
+}}
+
+Interview answer: {transcript}"""
+
+        try:
+            star_response = call_groq_llm(star_prompt)
+            clean_star = star_response.strip().replace("```json", "").replace("```", "")
+            star_analysis = json.loads(clean_star)
+        except Exception:
+            star_analysis = {
+                "star_score": 50,
+                "star_feedback": "Could not analyze answer structure.",
+                "has_situation": False,
+                "has_action": False,
+                "has_result": False
+            }
+
+        # 8. Cleanup
         os.remove(file_path)
-        
-        # 5. The Response: Send the dictionary back to the frontend
+        if os.path.exists(converted_path):
+            os.remove(converted_path)
+
         return {
             "filename": file.filename,
             "status": "success",
-            "data": results
+            "data": {
+                **results,
+                "transcript": transcript,
+                "duration_seconds": round(duration_seconds, 1),
+                "wpm": fluency["wpm"],
+                "filler_word_count": fluency["filler_word_count"],
+                "filler_words_detected": fluency["filler_words_detected"],
+                "fluency_score": fluency["fluency_score"],
+                "relevance_score": relevance_score,
+                "star_analysis": star_analysis
+            }
         }
-        
+
     except Exception as e:
-        # If the ML model crashes, ensure we still delete the corrupted file
-        if os.path.exists(file_path):
-            os.remove(file_path)
-        # Throw an HTTP 500 Internal Server Error
+        for path in [file_path, converted_path]:
+            if os.path.exists(path):
+                os.remove(path)
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/generate-questions/")
