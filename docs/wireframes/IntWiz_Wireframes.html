@@ -1,0 +1,2105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>IntWiz — Interface Wireframes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg-page: #F4F1EA;
+    --bg-frame: #FFFFFF;
+    --bg-soft: #F8F6F0;
+    --bg-tint: #EFE9DC;
+    --ink: #1A1814;
+    --ink-soft: #5C5750;
+    --ink-faint: #8A8478;
+    --line: #E5DFD0;
+    --line-strong: #D4CCBA;
+    --accent: #2D4A3E;
+    --accent-soft: #3D6B57;
+    --accent-bg: #E8EFEB;
+    --warn: #B8553D;
+    --gold: #C49A3A;
+    --success: #4A7C59;
+
+    --font-display: 'Instrument Serif', Georgia, serif;
+    --font-body: 'DM Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-body);
+    background: var(--bg-page);
+    color: var(--ink);
+    line-height: 1.5;
+    padding: 60px 40px 120px;
+    min-height: 100vh;
+  }
+
+  /* ─── Page Header ─── */
+  .page-header {
+    max-width: 1480px;
+    margin: 0 auto 80px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 60px;
+    align-items: end;
+    border-bottom: 1px solid var(--line-strong);
+    padding-bottom: 40px;
+  }
+
+  .page-header h1 {
+    font-family: var(--font-display);
+    font-size: 88px;
+    font-weight: 400;
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+
+  .page-header h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .page-header .meta {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.8;
+  }
+
+  .page-header .meta strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .page-intro {
+    max-width: 1480px;
+    margin: 0 auto 100px;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  .page-intro .label {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    border-top: 2px solid var(--ink);
+    padding-top: 16px;
+  }
+
+  .page-intro p {
+    font-family: var(--font-display);
+    font-size: 28px;
+    line-height: 1.4;
+    color: var(--ink);
+    font-weight: 400;
+  }
+
+  .page-intro p em { font-style: italic; color: var(--accent); }
+
+  /* ─── Frame Container ─── */
+  .frame {
+    max-width: 1480px;
+    margin: 0 auto 120px;
+  }
+
+  .frame-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 32px;
+    align-items: end;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  .frame-number {
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 400;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 0.8;
+  }
+
+  .frame-title-block h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 400;
+    line-height: 1.1;
+    margin-bottom: 6px;
+  }
+
+  .frame-title-block .description {
+    font-size: 14px;
+    color: var(--ink-soft);
+    max-width: 600px;
+  }
+
+  .frame-meta {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    text-align: right;
+    line-height: 1.8;
+  }
+
+  .frame-meta strong { color: var(--ink); font-weight: 500; }
+
+  .mockup {
+    background: var(--bg-frame);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 30px 60px -20px rgba(26,24,20,0.1);
+    position: relative;
+  }
+
+  /* Browser chrome on top of mockup */
+  .browser-bar {
+    background: var(--bg-soft);
+    border-bottom: 1px solid var(--line);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .browser-dots {
+    display: flex;
+    gap: 6px;
+  }
+
+  .browser-dots span {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    background: var(--line-strong);
+  }
+
+  .browser-url {
+    flex: 1;
+    background: var(--bg-frame);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 1 — LOGIN
+     ════════════════════════════════════════ */
+
+  .screen-login {
+    height: 760px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    background: var(--bg-frame);
+  }
+
+  .login-aside {
+    background: var(--accent);
+    color: #F4F1EA;
+    padding: 48px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .login-aside::before {
+    content: '';
+    position: absolute;
+    top: -100px; right: -100px;
+    width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(244,241,234,0.08), transparent 70%);
+  }
+
+  .login-logo {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+
+  .login-logo em {
+    font-style: italic;
+    color: var(--gold);
+  }
+
+  .login-aside .quote {
+    font-family: var(--font-display);
+    font-size: 32px;
+    line-height: 1.3;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+  }
+
+  .login-aside .quote em { font-style: italic; }
+
+  .login-aside .signature {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: rgba(244,241,234,0.6);
+  }
+
+  .login-form {
+    padding: 80px 64px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 480px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .login-form .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .login-form h2 {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .login-form h2 em { font-style: italic; color: var(--accent); }
+
+  .login-form .subtitle {
+    color: var(--ink-soft);
+    margin-bottom: 40px;
+    font-size: 15px;
+  }
+
+  .input-group { margin-bottom: 20px; }
+
+  .input-group label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 8px;
+  }
+
+  .input-field {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-frame);
+    font-family: var(--font-body);
+    font-size: 15px;
+    color: var(--ink);
+    border-radius: 2px;
+  }
+
+  .input-field.placeholder { color: var(--ink-faint); }
+
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 20px 0 28px;
+    font-size: 13px;
+  }
+
+  .form-row .checkbox-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--ink-soft);
+  }
+
+  .form-row .checkbox {
+    width: 14px; height: 14px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 2px;
+  }
+
+  .form-row a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 1px;
+  }
+
+  .btn-primary {
+    width: 100%;
+    padding: 16px;
+    background: var(--ink);
+    color: #F4F1EA;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .login-form .footer-link {
+    margin-top: 32px;
+    text-align: center;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .login-form .footer-link a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid var(--accent);
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 2 — DASHBOARD
+     ════════════════════════════════════════ */
+
+  .screen-dashboard {
+    background: var(--bg-frame);
+    min-height: 880px;
+  }
+
+  .top-nav {
+    border-bottom: 1px solid var(--line);
+    padding: 20px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .top-nav-logo {
+    font-family: var(--font-display);
+    font-size: 26px;
+    font-weight: 400;
+  }
+
+  .top-nav-logo em { font-style: italic; color: var(--accent); }
+
+  .top-nav-right {
+    display: flex;
+    gap: 32px;
+    align-items: center;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+
+  .avatar {
+    width: 36px; height: 36px;
+    background: var(--accent);
+    color: #F4F1EA;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    font-size: 14px;
+  }
+
+  .dashboard-content {
+    padding: 56px 48px 80px;
+  }
+
+  .greeting-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+    margin-bottom: 56px;
+  }
+
+  .greeting-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .greeting-row h1 {
+    font-family: var(--font-display);
+    font-size: 64px;
+    font-weight: 400;
+    line-height: 0.95;
+  }
+
+  .greeting-row h1 em { font-style: italic; color: var(--accent); }
+
+  .start-btn {
+    background: var(--ink);
+    color: #F4F1EA;
+    padding: 20px 32px;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .start-btn .arrow {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-style: italic;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-bottom: 80px;
+  }
+
+  .stat-card {
+    background: var(--bg-frame);
+    padding: 36px 32px;
+    position: relative;
+  }
+
+  .stat-card .label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+
+  .stat-card .value {
+    font-family: var(--font-display);
+    font-size: 72px;
+    font-weight: 400;
+    line-height: 0.9;
+    color: var(--ink);
+  }
+
+  .stat-card .delta {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--success);
+    font-family: var(--font-mono);
+  }
+
+  .stat-card .delta.neutral { color: var(--ink-faint); }
+
+  .section-header {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 24px;
+    align-items: center;
+    margin-bottom: 32px;
+  }
+
+  .section-header h2 {
+    font-family: var(--font-display);
+    font-size: 36px;
+    font-weight: 400;
+  }
+
+  .section-header h2 em { font-style: italic; }
+
+  .section-header .line {
+    height: 1px;
+    background: var(--line-strong);
+  }
+
+  .section-header .meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+  }
+
+  .interview-list { border-top: 1px solid var(--line-strong); }
+
+  .interview-item {
+    display: grid;
+    grid-template-columns: 80px 1fr auto auto;
+    gap: 32px;
+    align-items: center;
+    padding: 28px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .interview-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    line-height: 1.5;
+  }
+
+  .interview-date strong {
+    display: block;
+    color: var(--ink);
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+
+  .interview-info h3 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+    margin-bottom: 6px;
+  }
+
+  .interview-meta-row {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    color: var(--ink-soft);
+  }
+
+  .interview-meta-row span { display: inline-flex; gap: 4px; align-items: center; }
+
+  .interview-score {
+    text-align: right;
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-weight: 400;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .interview-score small {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 4px;
+  }
+
+  .interview-action {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-soft);
+    border: 1px solid var(--line-strong);
+    padding: 10px 16px;
+    cursor: pointer;
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 3 — SETUP
+     ════════════════════════════════════════ */
+
+  .screen-setup {
+    background: var(--bg-frame);
+    min-height: 1120px;
+  }
+
+  .setup-header {
+    border-bottom: 1px solid var(--line);
+    padding: 24px 48px;
+  }
+
+  .back-link {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+
+  .setup-content {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 64px 48px;
+  }
+
+  .setup-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+  }
+
+  .setup-title {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 400;
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .setup-title em { font-style: italic; color: var(--accent); }
+
+  .setup-subtitle {
+    color: var(--ink-soft);
+    font-size: 16px;
+    margin-bottom: 56px;
+    max-width: 500px;
+  }
+
+  .setup-step {
+    margin-bottom: 48px;
+    padding-bottom: 48px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .setup-step:last-child { border-bottom: none; }
+
+  .step-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 24px;
+    align-items: baseline;
+    margin-bottom: 24px;
+  }
+
+  .step-number {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .step-title {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-weight: 400;
+    line-height: 1;
+  }
+
+  .step-description {
+    grid-column: 2;
+    color: var(--ink-soft);
+    font-size: 14px;
+    margin-top: 6px;
+  }
+
+  .upload-zone {
+    border: 1.5px dashed var(--line-strong);
+    background: var(--bg-soft);
+    padding: 48px;
+    text-align: center;
+    border-radius: 4px;
+    margin-left: 56px;
+  }
+
+  .upload-icon {
+    font-family: var(--font-display);
+    font-size: 48px;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 16px;
+  }
+
+  .upload-zone p {
+    font-size: 16px;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .upload-zone .small {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  .file-confirmed {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 16px 0 0 56px;
+    padding: 12px 16px;
+    background: var(--accent-bg);
+    border-left: 2px solid var(--accent);
+    font-size: 14px;
+  }
+
+  .file-confirmed .check { color: var(--success); font-weight: 600; }
+  .file-confirmed .filename { font-family: var(--font-mono); font-size: 13px; }
+  .file-confirmed .size { color: var(--ink-faint); margin-left: auto; font-size: 12px; }
+
+  .toggle-tabs {
+    display: flex;
+    margin-left: 56px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .toggle-tab {
+    padding: 12px 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-faint);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+  }
+
+  .toggle-tab.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  .textarea {
+    margin-left: 56px;
+    width: calc(100% - 56px);
+    padding: 16px;
+    border: 1px solid var(--line-strong);
+    background: var(--bg-frame);
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink);
+    min-height: 140px;
+    border-radius: 2px;
+    line-height: 1.6;
+    color: var(--ink-soft);
+  }
+
+  .mode-options {
+    margin-left: 56px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .mode-option {
+    border: 1px solid var(--line-strong);
+    padding: 20px 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 20px;
+    align-items: center;
+    cursor: pointer;
+  }
+
+  .mode-option.selected {
+    border-color: var(--accent);
+    background: var(--accent-bg);
+  }
+
+  .radio {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--line-strong);
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .mode-option.selected .radio {
+    border-color: var(--accent);
+  }
+
+  .mode-option.selected .radio::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .mode-option-text strong {
+    display: block;
+    font-size: 16px;
+    margin-bottom: 4px;
+    font-weight: 500;
+  }
+
+  .mode-option-text span {
+    color: var(--ink-soft);
+    font-size: 13px;
+  }
+
+  .pill-group {
+    display: flex;
+    gap: 8px;
+  }
+
+  .pill {
+    width: 40px; height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--line-strong);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+
+  .pill.selected {
+    background: var(--ink);
+    color: #F4F1EA;
+    border-color: var(--ink);
+  }
+
+  .submit-row {
+    margin-top: 48px;
+    margin-left: 56px;
+  }
+
+  .btn-large {
+    background: var(--ink);
+    color: #F4F1EA;
+    padding: 22px 40px;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .btn-large .arrow {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 22px;
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 4 — INTERVIEW ROOM
+     ════════════════════════════════════════ */
+
+  .screen-interview {
+    background: var(--bg-frame);
+    height: 880px;
+    display: grid;
+    grid-template-columns: 360px 1fr;
+  }
+
+  .interview-sidebar {
+    background: var(--bg-soft);
+    border-right: 1px solid var(--line);
+    padding: 32px 24px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .sidebar-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-question-num {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 400;
+    line-height: 0.9;
+    margin-bottom: 4px;
+  }
+
+  .sidebar-question-num em {
+    font-style: italic;
+    color: var(--accent);
+    font-size: 32px;
+  }
+
+  .sidebar-progress-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin: 32px 0 8px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--line);
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  .progress-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 38%;
+    background: var(--accent);
+  }
+
+  .progress-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -3px;
+    width: 10px; height: 10px;
+    background: var(--accent);
+    border: 2px solid var(--bg-soft);
+    border-radius: 50%;
+  }
+
+  .scores-section { margin-bottom: 32px; }
+
+  .scores-section h4 {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+
+  .score-row {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 13px;
+    align-items: center;
+  }
+
+  .score-row .q {
+    font-family: var(--font-mono);
+    color: var(--ink-faint);
+    font-size: 11px;
+  }
+
+  .score-row .bar {
+    height: 4px;
+    background: var(--line);
+    border-radius: 2px;
+    position: relative;
+  }
+
+  .score-row .bar-fill {
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    background: var(--accent-soft);
+    border-radius: 2px;
+  }
+
+  .score-row .num {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .sidebar-bottom { margin-top: auto; }
+
+  .record-btn {
+    width: 100%;
+    background: var(--ink);
+    color: #F4F1EA;
+    padding: 20px;
+    border: none;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .record-btn .dot {
+    width: 8px; height: 8px;
+    background: #C9533D;
+    border-radius: 50%;
+    display: inline-block;
+  }
+
+  .type-btn {
+    width: 100%;
+    background: transparent;
+    color: var(--ink);
+    padding: 18px;
+    border: 1px solid var(--line-strong);
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+
+  .warning-text {
+    font-size: 11px;
+    color: var(--ink-faint);
+    font-style: italic;
+    line-height: 1.5;
+  }
+
+  /* Right chat area */
+  .interview-main {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-frame);
+  }
+
+  .interview-topbar {
+    padding: 20px 40px;
+    border-bottom: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .interview-topbar h2 {
+    font-family: var(--font-display);
+    font-size: 24px;
+    font-weight: 400;
+  }
+
+  .interview-topbar h2 em { font-style: italic; color: var(--accent); }
+
+  .end-btn {
+    background: transparent;
+    border: 1px solid var(--warn);
+    color: var(--warn);
+    padding: 10px 20px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+  }
+
+  .chat-area {
+    padding: 32px 48px;
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .chat-msg {
+    margin-bottom: 24px;
+    display: flex;
+    gap: 16px;
+  }
+
+  .chat-msg.user {
+    flex-direction: row-reverse;
+  }
+
+  .chat-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 18px;
+    font-weight: 400;
+  }
+
+  .chat-avatar.ai {
+    background: var(--accent);
+    color: #F4F1EA;
+  }
+
+  .chat-avatar.user {
+    background: var(--bg-tint);
+    color: var(--ink);
+  }
+
+  .chat-bubble {
+    max-width: 600px;
+    padding: 18px 22px;
+    border-radius: 4px;
+    font-size: 15px;
+    line-height: 1.55;
+  }
+
+  .chat-msg.ai .chat-bubble {
+    background: var(--accent-bg);
+    border-left: 2px solid var(--accent);
+  }
+
+  .chat-msg.user .chat-bubble {
+    background: var(--bg-soft);
+    border-right: 2px solid var(--ink);
+  }
+
+  .chat-bubble.current {
+    background: var(--bg-frame);
+    border: 2px solid var(--accent);
+    box-shadow: 0 4px 20px rgba(45,74,62,0.1);
+  }
+
+  .chat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+
+  .recording-indicator {
+    margin-top: 24px;
+    padding: 20px;
+    background: var(--bg-soft);
+    border: 1px dashed var(--line-strong);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .recording-pulse {
+    width: 12px; height: 12px;
+    background: var(--warn);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.3; }
+  }
+
+  .recording-text {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--ink);
+  }
+
+  .recording-text strong { color: var(--warn); margin-right: 8px; }
+
+  .waveform {
+    display: flex;
+    gap: 3px;
+    align-items: center;
+    margin-left: auto;
+  }
+
+  .waveform span {
+    width: 3px;
+    background: var(--accent);
+    border-radius: 2px;
+  }
+
+  /* ════════════════════════════════════════
+     SCREEN 5 — RESULTS
+     ════════════════════════════════════════ */
+
+  .screen-results {
+    background: var(--bg-frame);
+    min-height: 1240px;
+  }
+
+  .results-header {
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .download-btn {
+    background: var(--ink);
+    color: #F4F1EA;
+    padding: 12px 24px;
+    border: none;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .results-hero {
+    padding: 80px 48px 64px;
+    text-align: center;
+    border-bottom: 1px solid var(--line);
+    background: var(--bg-soft);
+  }
+
+  .results-hero .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+
+  .results-hero h1 {
+    font-family: var(--font-display);
+    font-size: 80px;
+    font-weight: 400;
+    line-height: 0.95;
+    margin-bottom: 48px;
+  }
+
+  .results-hero h1 em { font-style: italic; color: var(--accent); }
+
+  .score-circle-wrap {
+    display: inline-block;
+    position: relative;
+    margin-bottom: 32px;
+  }
+
+  .score-circle {
+    width: 240px; height: 240px;
+    position: relative;
+  }
+
+  .score-circle svg {
+    transform: rotate(-90deg);
+    width: 100%; height: 100%;
+  }
+
+  .score-circle-bg { fill: none; stroke: var(--line-strong); stroke-width: 8; }
+  .score-circle-fg { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; }
+
+  .score-circle-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-circle-text .num {
+    font-family: var(--font-display);
+    font-size: 96px;
+    font-weight: 400;
+    line-height: 0.9;
+    color: var(--ink);
+  }
+
+  .score-circle-text .of {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--ink-soft);
+  }
+
+  .results-tagline {
+    font-family: var(--font-display);
+    font-size: 28px;
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .summary-card {
+    margin: 64px auto;
+    max-width: 800px;
+    padding: 40px 48px;
+    background: var(--accent-bg);
+    border-left: 3px solid var(--accent);
+    position: relative;
+  }
+
+  .summary-card .quote-mark {
+    position: absolute;
+    top: -20px; left: 32px;
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 80px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .summary-card .summary-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    margin-bottom: 12px;
+    margin-top: 8px;
+  }
+
+  .summary-card .summary-text {
+    font-family: var(--font-display);
+    font-size: 22px;
+    line-height: 1.5;
+    color: var(--ink);
+    font-weight: 400;
+  }
+
+  .breakdown-section {
+    padding: 0 48px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .breakdown-section .section-title {
+    font-family: var(--font-display);
+    font-size: 40px;
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+
+  .breakdown-section .section-title em { font-style: italic; }
+
+  .metric-row {
+    display: grid;
+    grid-template-columns: 220px 1fr 80px;
+    gap: 32px;
+    align-items: center;
+    padding: 24px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .metric-name {
+    font-family: var(--font-display);
+    font-size: 22px;
+    font-weight: 400;
+  }
+
+  .metric-bar {
+    height: 8px;
+    background: var(--line);
+    position: relative;
+    border-radius: 0;
+  }
+
+  .metric-bar-fill {
+    height: 100%;
+    background: var(--accent);
+    position: relative;
+  }
+
+  .metric-bar-fill.fluency { width: 76%; background: var(--accent-soft); }
+  .metric-bar-fill.relevance { width: 84%; background: var(--accent); }
+  .metric-bar-fill.star { width: 72%; background: var(--gold); }
+  .metric-bar-fill.confidence { width: 68%; background: var(--warn); opacity: 0.7; }
+
+  .metric-value {
+    text-align: right;
+    font-family: var(--font-mono);
+    font-size: 24px;
+    color: var(--ink);
+    font-weight: 500;
+  }
+
+  .questions-section {
+    padding: 0 48px 80px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .question-card {
+    border: 1px solid var(--line);
+    padding: 28px 32px;
+    margin-bottom: 12px;
+    background: var(--bg-frame);
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    gap: 24px;
+    align-items: center;
+  }
+
+  .question-card .q-num {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-style: italic;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .question-card .q-text {
+    font-size: 16px;
+    color: var(--ink);
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+
+  .question-card .q-meta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+  }
+
+  .question-card .q-score {
+    font-family: var(--font-display);
+    font-size: 36px;
+    color: var(--accent);
+    line-height: 1;
+  }
+
+  .question-card .q-expand {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 24px;
+    color: var(--ink-faint);
+  }
+
+  /* ─── Footer ─── */
+  .doc-footer {
+    max-width: 1480px;
+    margin: 80px auto 0;
+    padding-top: 40px;
+    border-top: 1px solid var(--line-strong);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    line-height: 1.8;
+  }
+
+  .doc-footer strong { color: var(--ink); font-weight: 500; }
+
+  /* Print friendly */
+  @media print {
+    body { background: white; padding: 20px; }
+    .frame { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═════════ PAGE HEADER ═════════ -->
+<header class="page-header">
+  <h1>Int<em>Wiz</em><br>Wireframes</h1>
+  <div class="meta">
+    <strong>Project</strong> · IntWiz v0.3<br>
+    <strong>Author</strong> · Kaveen Jayamanne<br>
+    <strong>Reviewer</strong> · Ms. Lakni Peiris<br>
+    <strong>Date</strong> · April 2026<br>
+    <strong>Phase</strong> · UX Specification
+  </div>
+</header>
+
+<section class="page-intro">
+  <div class="label">— Document Overview</div>
+  <p>
+    The following five frames document the proposed user interface for IntWiz — an <em>AI-powered interview preparation platform</em>. Each screen represents a key moment in the user journey, from authentication through adaptive interview practice to performance analysis.
+  </p>
+</section>
+
+<!-- ═════════ SCREEN 1 — LOGIN ═════════ -->
+<section class="frame">
+  <div class="frame-header">
+    <div class="frame-number">01</div>
+    <div class="frame-title-block">
+      <h2>Authentication</h2>
+      <div class="description">Single-page login with email and password. Firebase Authentication handles credentials and session management.</div>
+    </div>
+    <div class="frame-meta">
+      <strong>Route</strong> · /login<br>
+      <strong>State</strong> · Unauthenticated<br>
+      <strong>Components</strong> · 8
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="browser-bar">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-url">intwiz.app/login</div>
+    </div>
+    <div class="screen-login">
+      <aside class="login-aside">
+        <div class="login-logo">Int<em>Wiz</em></div>
+        <div class="quote">
+          The interview is already <em>happening</em> — you're just rehearsing your half of it.
+        </div>
+        <div class="signature">— A practice space for thinking aloud</div>
+      </aside>
+      <div class="login-form">
+        <div class="eyebrow">— Welcome back</div>
+        <h2>Sign <em>in</em></h2>
+        <p class="subtitle">Continue your interview preparation journey.</p>
+
+        <div class="input-group">
+          <label>Email</label>
+          <div class="input-field placeholder">you@university.edu</div>
+        </div>
+
+        <div class="input-group">
+          <label>Password</label>
+          <div class="input-field placeholder">••••••••••••</div>
+        </div>
+
+        <div class="form-row">
+          <div class="checkbox-wrap">
+            <div class="checkbox"></div>
+            <span>Remember me</span>
+          </div>
+          <a href="#">Forgot password</a>
+        </div>
+
+        <button class="btn-primary">Sign In →</button>
+
+        <div class="footer-link">
+          New to IntWiz? <a href="#">Create an account</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ SCREEN 2 — DASHBOARD ═════════ -->
+<section class="frame">
+  <div class="frame-header">
+    <div class="frame-number">02</div>
+    <div class="frame-title-block">
+      <h2>Dashboard</h2>
+      <div class="description">Central hub showing performance summary statistics and historical interview sessions. Primary entry point for starting new practice sessions.</div>
+    </div>
+    <div class="frame-meta">
+      <strong>Route</strong> · /dashboard<br>
+      <strong>State</strong> · Authenticated<br>
+      <strong>Data</strong> · Firestore query
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="browser-bar">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-url">intwiz.app/dashboard</div>
+    </div>
+    <div class="screen-dashboard">
+      <nav class="top-nav">
+        <div class="top-nav-logo">Int<em>Wiz</em></div>
+        <div class="top-nav-right">
+          <span>Dashboard</span>
+          <span>History</span>
+          <span>Help</span>
+          <div class="avatar">KJ</div>
+        </div>
+      </nav>
+
+      <div class="dashboard-content">
+        <div class="greeting-row">
+          <div>
+            <div class="greeting-eyebrow">— Tuesday, 27 April</div>
+            <h1>Welcome back,<br><em>Kaveen</em></h1>
+          </div>
+          <button class="start-btn">
+            Start New Interview <span class="arrow">→</span>
+          </button>
+        </div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="label">Total Sessions</div>
+            <div class="value">03</div>
+            <div class="delta neutral">— Practice history</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Average Score</div>
+            <div class="value">74</div>
+            <div class="delta">↑ 8 from last week</div>
+          </div>
+          <div class="stat-card">
+            <div class="label">Personal Best</div>
+            <div class="value">82</div>
+            <div class="delta neutral">— Apr 20, 2026</div>
+          </div>
+        </div>
+
+        <div class="section-header">
+          <h2>Past <em>Interviews</em></h2>
+          <div class="line"></div>
+          <div class="meta">3 Sessions · Sorted by date</div>
+        </div>
+
+        <div class="interview-list">
+
+          <div class="interview-item">
+            <div class="interview-date">
+              <strong>Apr 20</strong>
+              2026 · 14:30
+            </div>
+            <div class="interview-info">
+              <h3>Data Analyst Position</h3>
+              <div class="interview-meta-row">
+                <span>7 questions</span>
+                <span>·</span>
+                <span>Fluency 88</span>
+                <span>·</span>
+                <span>Relevance 84</span>
+                <span>·</span>
+                <span>STAR 76</span>
+              </div>
+            </div>
+            <div class="interview-score">82<small>/ 100</small></div>
+            <div class="interview-action">View →</div>
+          </div>
+
+          <div class="interview-item">
+            <div class="interview-date">
+              <strong>Apr 15</strong>
+              2026 · 09:15
+            </div>
+            <div class="interview-info">
+              <h3>Software Engineer Position</h3>
+              <div class="interview-meta-row">
+                <span>5 questions</span>
+                <span>·</span>
+                <span>Fluency 72</span>
+                <span>·</span>
+                <span>Relevance 79</span>
+                <span>·</span>
+                <span>STAR 71</span>
+              </div>
+            </div>
+            <div class="interview-score">74<small>/ 100</small></div>
+            <div class="interview-action">View →</div>
+          </div>
+
+          <div class="interview-item">
+            <div class="interview-date">
+              <strong>Apr 10</strong>
+              2026 · 16:45
+            </div>
+            <div class="interview-info">
+              <h3>Junior Developer Position</h3>
+              <div class="interview-meta-row">
+                <span>5 questions</span>
+                <span>·</span>
+                <span>Fluency 68</span>
+                <span>·</span>
+                <span>Relevance 70</span>
+                <span>·</span>
+                <span>STAR 58</span>
+              </div>
+            </div>
+            <div class="interview-score">65<small>/ 100</small></div>
+            <div class="interview-action">View →</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ SCREEN 3 — SETUP ═════════ -->
+<section class="frame">
+  <div class="frame-header">
+    <div class="frame-number">03</div>
+    <div class="frame-title-block">
+      <h2>Interview Setup</h2>
+      <div class="description">Three-step configuration where the user uploads CV, provides job description (text or PDF), and selects interview mode (adaptive or fixed-length).</div>
+    </div>
+    <div class="frame-meta">
+      <strong>Route</strong> · /interview/setup<br>
+      <strong>API</strong> · POST /generate-questions/<br>
+      <strong>Inputs</strong> · 3
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="browser-bar">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-url">intwiz.app/interview/setup</div>
+    </div>
+    <div class="screen-setup">
+      <div class="setup-header">
+        <a href="#" class="back-link">← Back to Dashboard</a>
+      </div>
+
+      <div class="setup-content">
+        <div class="setup-eyebrow">— New session</div>
+        <h1 class="setup-title">Set up your <em>interview</em></h1>
+        <p class="setup-subtitle">Upload your CV, describe the role, and choose how the AI should pace your practice. Takes about a minute.</p>
+
+        <!-- Step 1 -->
+        <div class="setup-step">
+          <div class="step-header">
+            <div class="step-number">i</div>
+            <div>
+              <div class="step-title">Upload your CV</div>
+              <div class="step-description" style="margin-top:6px;">PDF format. The AI uses this to ask role-relevant questions.</div>
+            </div>
+          </div>
+
+          <div class="upload-zone">
+            <div class="upload-icon">↑</div>
+            <p>Drop your CV here, or <strong>click to browse</strong></p>
+            <div class="small">Supported · PDF · Max 10MB</div>
+          </div>
+
+          <div class="file-confirmed">
+            <span class="check">✓</span>
+            <span class="filename">Kaveen_CV.pdf</span>
+            <span class="size">245 KB</span>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="setup-step">
+          <div class="step-header">
+            <div class="step-number">ii</div>
+            <div>
+              <div class="step-title">Job description</div>
+              <div class="step-description" style="margin-top:6px;">Paste from LinkedIn or upload a PDF. The interviewer will reference this.</div>
+            </div>
+          </div>
+
+          <div class="toggle-tabs">
+            <div class="toggle-tab">Upload PDF</div>
+            <div class="toggle-tab active">Paste Text</div>
+          </div>
+
+          <div class="textarea">We are seeking a Data Analyst with strong Python skills, experience with SQL, and proficiency in data visualization tools like Tableau or PowerBI. The candidate should have a track record of translating complex data into actionable business insights...</div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="setup-step">
+          <div class="step-header">
+            <div class="step-number">iii</div>
+            <div>
+              <div class="step-title">Interview mode</div>
+              <div class="step-description" style="margin-top:6px;">Adaptive mode adjusts difficulty based on your answers — closer to a real interview.</div>
+            </div>
+          </div>
+
+          <div class="mode-options">
+            <div class="mode-option selected">
+              <div class="radio"></div>
+              <div class="mode-option-text">
+                <strong>Adaptive</strong>
+                <span>AI generates questions dynamically and decides when to stop. Length: 6–10 questions.</span>
+              </div>
+              <div style="font-family:var(--font-mono); font-size:10px; color:var(--accent); text-transform:uppercase; letter-spacing:0.1em;">Recommended</div>
+            </div>
+            <div class="mode-option">
+              <div class="radio"></div>
+              <div class="mode-option-text">
+                <strong>Fixed length</strong>
+                <span>Pre-decide how many questions. Useful for time-boxed practice.</span>
+              </div>
+              <div class="pill-group">
+                <div class="pill">5</div>
+                <div class="pill selected">7</div>
+                <div class="pill">10</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="submit-row">
+          <button class="btn-large">Generate interview <span class="arrow">→</span></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ SCREEN 4 — INTERVIEW ROOM ═════════ -->
+<section class="frame">
+  <div class="frame-header">
+    <div class="frame-number">04</div>
+    <div class="frame-title-block">
+      <h2>Interview Room</h2>
+      <div class="description">Live interview interface with split-screen layout. Sidebar tracks progress and scores; main area shows conversation history. End-interview option always accessible.</div>
+    </div>
+    <div class="frame-meta">
+      <strong>Route</strong> · /interview/active<br>
+      <strong>API</strong> · POST /analyze-audio/<br>
+      <strong>Layout</strong> · 1/4 · 3/4 split
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="browser-bar">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-url">intwiz.app/interview/active</div>
+    </div>
+    <div class="screen-interview">
+      <!-- LEFT SIDEBAR -->
+      <aside class="interview-sidebar">
+        <div class="sidebar-eyebrow">— In progress</div>
+        <div class="sidebar-question-num">03<em> of ~8</em></div>
+
+        <div class="sidebar-progress-label">
+          <span>Progress</span>
+          <span>≈ 38%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill"></div>
+        </div>
+
+        <div class="scores-section">
+          <h4>— Scores so far</h4>
+          <div class="score-row">
+            <span class="q">Q.01</span>
+            <div class="bar"><div class="bar-fill" style="width:78%"></div></div>
+            <span class="num">78</span>
+          </div>
+          <div class="score-row">
+            <span class="q">Q.02</span>
+            <div class="bar"><div class="bar-fill" style="width:82%"></div></div>
+            <span class="num">82</span>
+          </div>
+          <div class="score-row" style="opacity:0.4;">
+            <span class="q">Q.03</span>
+            <div class="bar"><div class="bar-fill" style="width:0%"></div></div>
+            <span class="num">—</span>
+          </div>
+        </div>
+
+        <div class="sidebar-bottom">
+          <button class="record-btn">
+            <span class="dot"></span>
+            Record answer
+          </button>
+          <button class="type-btn">Type instead</button>
+          <p class="warning-text">Note: text answers cannot be analyzed for fluency, tone, or vocal confidence.</p>
+        </div>
+      </aside>
+
+      <!-- RIGHT MAIN -->
+      <div class="interview-main">
+        <div class="interview-topbar">
+          <h2>Question <em>three</em></h2>
+          <button class="end-btn">End Interview Now</button>
+        </div>
+
+        <div class="chat-area">
+
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai">A</div>
+            <div class="chat-bubble">
+              <div class="chat-label">— Question 1</div>
+              Tell me about your Python experience and how you've applied it in real-world projects.
+            </div>
+          </div>
+
+          <div class="chat-msg user">
+            <div class="chat-avatar user">K</div>
+            <div class="chat-bubble">
+              I have three years of experience with Python, working primarily on data analysis projects using Pandas and Matplotlib for visualization.
+            </div>
+          </div>
+
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai">A</div>
+            <div class="chat-bubble">
+              <div class="chat-label">— Question 2</div>
+              Can you describe a specific project where Python made a measurable impact?
+            </div>
+          </div>
+
+          <div class="chat-msg user">
+            <div class="chat-avatar user">K</div>
+            <div class="chat-bubble">
+              I analyzed 1.8 million UK road accident records using Python — Pandas for data cleaning, Matplotlib for visualizing severity patterns. Identified high-risk zones with accuracy improvements of about 23%.
+            </div>
+          </div>
+
+          <div class="chat-msg ai">
+            <div class="chat-avatar ai">A</div>
+            <div class="chat-bubble current">
+              <div class="chat-label">— Current question</div>
+              Based on your previous answer, let's go deeper. <strong>How did you handle missing values</strong> in the road accident dataset, and what was your reasoning for that approach over alternatives like simple imputation?
+            </div>
+          </div>
+
+          <div class="recording-indicator">
+            <div class="recording-pulse"></div>
+            <div class="recording-text"><strong>RECORDING</strong> 00:12</div>
+            <div class="waveform">
+              <span style="height:8px"></span>
+              <span style="height:18px"></span>
+              <span style="height:24px"></span>
+              <span style="height:14px"></span>
+              <span style="height:28px"></span>
+              <span style="height:20px"></span>
+              <span style="height:10px"></span>
+              <span style="height:22px"></span>
+              <span style="height:16px"></span>
+              <span style="height:8px"></span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ SCREEN 5 — RESULTS ═════════ -->
+<section class="frame">
+  <div class="frame-header">
+    <div class="frame-number">05</div>
+    <div class="frame-title-block">
+      <h2>Results &amp; Analysis</h2>
+      <div class="description">Post-interview report with overall score, AI-generated summary, performance breakdown by metric, and per-question detail with full transcripts.</div>
+    </div>
+    <div class="frame-meta">
+      <strong>Route</strong> · /results/:id<br>
+      <strong>API</strong> · GET /get-report/{id}<br>
+      <strong>Export</strong> · PDF
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="browser-bar">
+      <div class="browser-dots"><span></span><span></span><span></span></div>
+      <div class="browser-url">intwiz.app/results/rpt_f8a2b3c4</div>
+    </div>
+    <div class="screen-results">
+      <div class="results-header">
+        <a href="#" class="back-link">← Back to Dashboard</a>
+        <button class="download-btn">↓ Download PDF</button>
+      </div>
+
+      <div class="results-hero">
+        <div class="eyebrow">— Session complete</div>
+        <h1>Your <em>results</em>.</h1>
+
+        <div class="score-circle-wrap">
+          <div class="score-circle">
+            <svg viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="44" class="score-circle-bg" />
+              <circle cx="50" cy="50" r="44" class="score-circle-fg"
+                stroke-dasharray="276.46" stroke-dashoffset="60.82" />
+            </svg>
+            <div class="score-circle-text">
+              <div class="num">78</div>
+              <div class="of">— out of 100</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="results-tagline">A solid performance, with room to sharpen.</div>
+      </div>
+
+      <div class="summary-card">
+        <div class="quote-mark">"</div>
+        <div class="summary-label">— AI-generated summary</div>
+        <div class="summary-text">
+          Your responses showed strong technical knowledge with good structural framing. Focus on reducing filler words (12 total across the session) and providing more quantifiable results in your answers — the kind of specific outcomes hiring managers remember.
+        </div>
+      </div>
+
+      <div class="breakdown-section">
+        <h2 class="section-title">Performance <em>breakdown</em></h2>
+
+        <div class="metric-row">
+          <div class="metric-name">Relevance</div>
+          <div class="metric-bar"><div class="metric-bar-fill relevance"></div></div>
+          <div class="metric-value">84</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">Fluency</div>
+          <div class="metric-bar"><div class="metric-bar-fill fluency"></div></div>
+          <div class="metric-value">76</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">STAR Structure</div>
+          <div class="metric-bar"><div class="metric-bar-fill star"></div></div>
+          <div class="metric-value">72</div>
+        </div>
+        <div class="metric-row">
+          <div class="metric-name">Vocal Confidence</div>
+          <div class="metric-bar"><div class="metric-bar-fill confidence"></div></div>
+          <div class="metric-value">68</div>
+        </div>
+      </div>
+
+      <div class="questions-section">
+        <h2 class="section-title">By <em>question</em></h2>
+
+        <div class="question-card">
+          <div class="q-num">i</div>
+          <div>
+            <div class="q-text">Tell me about your Python experience.</div>
+            <div class="q-meta">Fluency 88 · Relevance 84 · STAR 76 · WPM 126</div>
+          </div>
+          <div class="q-score">82</div>
+          <div class="q-expand">↓</div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-num">ii</div>
+          <div>
+            <div class="q-text">Can you describe a specific project where Python made a measurable impact?</div>
+            <div class="q-meta">Fluency 72 · Relevance 81 · STAR 78 · WPM 118</div>
+          </div>
+          <div class="q-score">79</div>
+          <div class="q-expand">↓</div>
+        </div>
+
+        <div class="question-card">
+          <div class="q-num">iii</div>
+          <div>
+            <div class="q-text">How did you handle missing values in the road accident dataset?</div>
+            <div class="q-meta">Fluency 80 · Relevance 78 · STAR 70 · WPM 110</div>
+          </div>
+          <div class="q-score">75</div>
+          <div class="q-expand">↓</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════ FOOTER ═════════ -->
+<footer class="doc-footer">
+  <div>
+    <strong>IntWiz Wireframes — v1</strong><br>
+    Interface specification for supervisor review<br>
+    Final-year project · BSc Data Science<br>
+    University of Plymouth
+  </div>
+  <div style="text-align:right;">
+    <strong>Next iteration</strong><br>
+    React implementation begins Phase 4<br>
+    All routes, components, and APIs<br>
+    documented in DECISIONS.md
+  </div>
+</footer>
+
+</body>
+</html>
