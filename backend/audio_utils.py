@@ -203,6 +203,91 @@ def calculate_fluency_metrics(transcript: str, duration_seconds: float) -> dict:
         "fluency_score": fluency_score
     }
 
+# Pause analysis thresholds — tunable without touching scoring logic
+IDEAL_PAUSE_MIN = 1.0       # seconds
+IDEAL_PAUSE_MAX = 2.0
+ACCEPTABLE_PAUSE_MIN = 0.5
+ACCEPTABLE_PAUSE_MAX = 2.5
+IDEAL_RATE_MIN = 3          # pauses per minute
+IDEAL_RATE_MAX = 5
+ACCEPTABLE_RATE_MIN = 2
+ACCEPTABLE_RATE_MAX = 6
+HESITATION_PAUSE_THRESHOLD = 3.0
+MIN_AUDIO_DURATION = 5.0    # seconds
+
+def analyze_pause_patterns(file_path: str) -> dict:
+    """
+    Analyzes silence segments to distinguish strategic pauses from nervous hesitation.
+
+    Based on Goldman-Eisler (1968) research showing that strategic pauses
+    improve listener comprehension. Confident speakers use 1-2s pauses
+    between thoughts, while nervous speakers either rush (no pauses) or
+    hesitate excessively (>3s pauses).
+
+    Args:
+        file_path: Path to a wav audio file
+
+    Returns:
+        Dictionary with pause_count, average_pause_duration, pause_quality_score
+    """
+    default = {"pause_count": 0, "average_pause_duration": 0.0, "pause_quality_score": 50}
+
+    try:
+        y, sr = librosa.load(file_path, sr=None)
+        duration = len(y) / sr
+
+        if duration < MIN_AUDIO_DURATION:
+            return default
+
+        # Detect non-silent intervals; gaps between them are pauses
+        non_silent = librosa.effects.split(y, top_db=30)
+
+        if len(non_silent) < 2:
+            return {**default, "pause_count": 0}
+
+        pause_durations = []
+        for i in range(1, len(non_silent)):
+            gap = (non_silent[i][0] - non_silent[i - 1][1]) / sr
+            if gap > 0.1:  # ignore imperceptibly short inter-frame gaps
+                pause_durations.append(gap)
+
+        pause_count = len(pause_durations)
+        avg_duration = float(np.mean(pause_durations)) if pause_durations else 0.0
+        pauses_per_minute = (pause_count / duration) * 60
+
+        # Score based on Goldman-Eisler thresholds
+        ideal_rate = IDEAL_RATE_MIN <= pauses_per_minute <= IDEAL_RATE_MAX
+        ideal_duration = IDEAL_PAUSE_MIN <= avg_duration <= IDEAL_PAUSE_MAX
+        acceptable_rate = ACCEPTABLE_RATE_MIN <= pauses_per_minute <= ACCEPTABLE_RATE_MAX
+        acceptable_duration = ACCEPTABLE_PAUSE_MIN <= avg_duration <= ACCEPTABLE_PAUSE_MAX
+        rushing = pauses_per_minute < ACCEPTABLE_RATE_MIN
+        hesitating = pauses_per_minute > ACCEPTABLE_RATE_MAX or avg_duration > HESITATION_PAUSE_THRESHOLD
+
+        if ideal_rate and ideal_duration:
+            score = 92
+        elif ideal_rate or ideal_duration:
+            score = 80
+        elif acceptable_rate and acceptable_duration:
+            score = 72
+        elif acceptable_rate or acceptable_duration:
+            score = 62
+        elif rushing:
+            score = 50
+        elif hesitating:
+            score = 35
+        else:
+            score = 50
+
+        return {
+            "pause_count": pause_count,
+            "average_pause_duration": round(avg_duration, 2),
+            "pause_quality_score": score
+        }
+
+    except Exception:
+        return default
+
+
 def calculate_relevance_score(transcript: str, reference_text: str) -> float:
     """
     Calculates semantic relevance between candidate's answer and job requirements.
