@@ -1,4 +1,6 @@
 import os
+import re
+import json
 import numpy as np
 import librosa
 import tensorflow as tf
@@ -286,6 +288,114 @@ def analyze_pause_patterns(file_path: str) -> dict:
 
     except Exception:
         return default
+
+
+def calculate_technical_depth(transcript: str, job_description: str, cv_text: str) -> dict:
+    """
+    Measures technical expertise depth by counting domain-specific
+    terminology relative to total word count. Based on Maurer & Fay (1988)
+    research showing job-relevant language strongly predicts interview success.
+    Higher density indicates genuine expertise vs surface-level knowledge.
+
+    Args:
+        transcript: The candidate's spoken answer
+        job_description: Job description text used to identify relevant terms
+        cv_text: CV text used to identify relevant terms
+
+    Returns:
+        Dictionary with technical_terms_found, technical_term_count,
+        technical_depth_score, and relevant_terms_extracted
+    """
+    default = {
+        "technical_terms_found": [],
+        "technical_term_count": 0,
+        "technical_depth_score": 50,
+        "relevant_terms_extracted": []
+    }
+
+    if not transcript or not transcript.strip():
+        return default
+
+    # No reference context — can't extract domain terms
+    if not job_description.strip() and not cv_text.strip():
+        return default
+
+    try:
+        from groq import Groq
+        groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+        prompt = f"""Extract the most important technical terms, tools, frameworks, \
+and methodologies from the following job description and CV. \
+Return ONLY a Python list of strings, no explanation.
+
+Focus on:
+- Programming languages
+- Frameworks and libraries
+- Methodologies (e.g., Agile, TDD)
+- Domain-specific concepts (e.g., regression, classification)
+- Tools and platforms (e.g., AWS, Docker)
+
+Aim for 15-25 most relevant terms.
+
+JOB DESCRIPTION:
+{job_description}
+
+CV:
+{cv_text}
+
+Return format: ["term1", "term2", "term3", ...]"""
+
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": prompt}],
+            temperature=0.3,
+            max_tokens=256
+        )
+        raw = response.choices[0].message.content.strip()
+
+        # Parse the list — handle both JSON arrays and Python list literals
+        # Strip any markdown fences the model may have added
+        clean = raw.replace("```json", "").replace("```python", "").replace("```", "").strip()
+        relevant_terms = json.loads(clean)
+        if not isinstance(relevant_terms, list):
+            return default
+
+    except Exception:
+        return default
+
+    # Whole-word, case-insensitive search for each extracted term
+    transcript_lower = transcript.lower()
+    words = transcript.split()
+    total_words = len(words)
+
+    found_terms = []
+    for term in relevant_terms:
+        # re.escape handles multi-word terms and special chars (e.g. "C++", "Node.js")
+        pattern = r'\b' + re.escape(term.lower()) + r'\b'
+        if re.search(pattern, transcript_lower):
+            found_terms.append(term)
+
+    term_count = len(found_terms)
+
+    # Normalize density to 0-100 using two linear segments:
+    # 0% → 0, 5% → 50, 10%+ → 100
+    if total_words == 0:
+        score = 0
+    else:
+        density = (term_count / total_words) * 100
+        if density <= 0:
+            score = 0
+        elif density <= 5:
+            score = round(density * 10)        # 0–5% maps to 0–50
+        else:
+            score = round(min(50 + (density - 5) * 10, 100))  # 5–10% maps to 50–100
+
+    return {
+        "technical_terms_found": found_terms,
+        "technical_term_count": term_count,
+        "technical_depth_score": score,
+        "relevant_terms_extracted": relevant_terms
+    }
 
 
 def calculate_relevance_score(transcript: str, reference_text: str) -> float:

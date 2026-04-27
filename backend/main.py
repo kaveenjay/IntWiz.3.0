@@ -16,6 +16,7 @@ from audio_utils import (
     calculate_fluency_metrics,
     calculate_relevance_score,
     analyze_pause_patterns,
+    calculate_technical_depth,
 )
 
 # Load environment variables
@@ -157,11 +158,14 @@ async def analyze_audio(
         # 6. Fluency metrics
         fluency = calculate_fluency_metrics(transcript, duration_seconds)
 
-        # 7. Relevance score against CV + JD if context was provided
+        # 7. Technical depth score
+        tech_depth = calculate_technical_depth(transcript, job_description_text, cv_text)
+
+        # 8. Relevance score against CV + JD if context was provided
         reference = cv_text + " " + job_description_text
         relevance_score = calculate_relevance_score(transcript, reference) if len(reference.strip()) > 20 else 50.0
 
-        # 8. STAR method structural analysis via LLM
+        # 9. STAR method structural analysis via LLM
         star_prompt = f"""Analyze this interview answer and return ONLY valid JSON with no markdown, no backticks:
 {{
   "star_score": <integer 0-100>,
@@ -186,7 +190,7 @@ Interview answer: {transcript}"""
                 "has_result": False
             }
 
-        # 9. Cleanup
+        # 10. Cleanup
         os.remove(file_path)
         if os.path.exists(converted_path):
             os.remove(converted_path)
@@ -205,6 +209,10 @@ Interview answer: {transcript}"""
                 "pause_count": pause_analysis["pause_count"],
                 "average_pause_duration": pause_analysis["average_pause_duration"],
                 "pause_quality_score": pause_analysis["pause_quality_score"],
+                "technical_terms_found": tech_depth["technical_terms_found"],
+                "technical_term_count": tech_depth["technical_term_count"],
+                "technical_depth_score": tech_depth["technical_depth_score"],
+                "relevant_terms_extracted": tech_depth["relevant_terms_extracted"],
                 "relevance_score": relevance_score,
                 "star_analysis": star_analysis
             }
