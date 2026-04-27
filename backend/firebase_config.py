@@ -30,7 +30,7 @@ try:
     if not firebase_admin._apps:
         _cred = credentials.Certificate(_CRED_PATH)
         firebase_admin.initialize_app(_cred, {
-            'storageBucket': f'{_project_id}.appspot.com'
+            'storageBucket': f'{_project_id}.firebasestorage.app'
         })
 
     db = firestore.client()
