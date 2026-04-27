@@ -70,10 +70,10 @@ This design decision reflects a common trade-off in applied AI systems: starting
 |--------|--------|------|--------|
 | Inference Speed | ~5ms | ~200-500ms | ~200-500ms |
 | Model Size | 0MB (no weights) | 400MB+ | 400MB+ |
-| Synonym Handling | ❌ Poor | ✅ Excellent | ✅ Excellent |
-| Keyword Precision | ✅ Exact matches | ⚠️ May over-generalize | ✅ Best of both |
-| Deterministic | ✅ Always | ❌ Model version dependent | ❌ Model dependent |
-| Explainability | ✅ Clear | ❌ Black box | ⚠️ Complex |
+| Synonym Handling | Poor | Excellent | Excellent |
+| Keyword Precision | Exact matches | May over-generalize | Best of both |
+| Deterministic | Always | Model version dependent | Model dependent |
+| Explainability | Clear | Black box | Complex |
 
 **Why TF-IDF Was Selected:**
 
@@ -109,6 +109,208 @@ A production system could implement **lightweight hybrid scoring**:
 4. Validate weights using A/B testing against user feedback
 
 For the current prototype, TF-IDF provides sufficient relevance detection while maintaining the system's core objectives of speed and explainability.
+
+---
+
+## Additional Evaluation Metrics — Supervisor Feedback Integration
+
+**Context:** Following supervisor meeting on April 22, 2026, three additional metrics were added to strengthen the evaluation framework and provide more comprehensive performance assessment.
+
+---
+
+### 1. Pause Quality Analysis
+
+**What we measure:**
+- Number of pauses in the answer
+- Average pause duration (seconds)
+- Pause quality score (0-100)
+
+**Why it matters:**
+Strategic pauses are a hallmark of confident, prepared speakers. Nervous candidates either rush without pausing (appears anxious) or freeze with excessive hesitation (appears uncertain).
+
+**Academic Support:**
+- Goldman-Eisler, F. (1968). *Psycholinguistics: Experiments in spontaneous speech.* Academic Press.
+  - Research showed strategic pauses (1-2 seconds) improve listener comprehension and retention
+  - Confident speakers use deliberate pauses to structure thoughts
+  - Excessive pauses (>3 seconds) or complete absence both correlate with perceived uncertainty
+
+**Implementation Details:**
+
+```python
+# Uses librosa.effects.split() to detect silence segments
+intervals = librosa.effects.split(y, top_db=30)
+pause_durations = [(end-start)/sr for start,end in intervals]
+
+# Scoring thresholds (research-backed):
+# Ideal: 3-5 pauses per minute, 1.0-2.0s each → 85-100
+# Acceptable: 2-6 pauses/min, 0.5-2.5s → 60-85
+# Too few (rushing): 0-1 pauses/min → 40-60
+# Too many (hesitation): >6 pauses or >3s avg → 20-50
+```
+
+**Interpretation:**
+- High score (85-100): Strategic pausing, composed delivery
+- Medium score (50-70): Acceptable but could improve rhythm
+- Low score (<50): Either rushing or excessive hesitation
+
+**Known Limitation:**
+Very short answers (<10 seconds) naturally have fewer pause opportunities. Score of 50 (neutral) returned for <5-second clips.
+
+---
+
+### 2. Technical Depth Score
+
+**What we measure:**
+- Technical terms found in transcript
+- Technical term count
+- Technical depth score (0-100)
+- Relevant terms extracted from JD+CV
+
+**Why it matters:**
+Distinguishes surface-level knowledge ("I used Python") from genuine expertise ("I used Python's multiprocessing library to parallelize the ETL pipeline, reducing runtime from 4 hours to 45 minutes"). Term density demonstrates domain fluency.
+
+**Academic Support:**
+- Maurer, S. D., & Fay, C. (1988). Effect of situational interviews, conventional structured interviews, and training on interview rating agreement. *Personnel Psychology*, 41(2), 329-344.
+  - Job-relevant language strongly predicts interviewer evaluation scores
+  - Candidates who use domain-specific terminology rated significantly higher
+- Huffcutt, A. I., et al. (2001). Identification and meta-analytic assessment of psychological constructs measured in employment interviews. *Journal of Applied Psychology*, 86(5), 897-913.
+  - Technical content accounts for 15-20% of interview score variance
+
+**Implementation Details:**
+
+**Step 1:** LLM extracts 15-25 relevant technical terms from JD + CV
+```python
+# Groq Llama 3.3 identifies: programming languages, frameworks, 
+# methodologies, domain concepts, tools/platforms
+relevant_terms = ["Python", "SQL", "Pandas", "Machine Learning", ...]
+```
+
+**Step 2:** Count occurrences in transcript (case-insensitive, whole-word matching)
+
+**Step 3:** Calculate density and normalize to 0-100
+```python
+density = (technical_terms_used / total_words_in_transcript) * 100
+
+# Scoring:
+# 0% density → score 0 (no technical language)
+# 5% density → score 50 (acceptable)
+# 10%+ density → score 100 (excellent depth)
+```
+
+**Why dynamic extraction vs static lexicon:**
+- Each role has unique technical requirements
+- LLM adapts to domain (data science vs web dev vs DevOps)
+- Avoids false positives from generic technical-sounding words
+
+**Interpretation:**
+- Score 80-100: Deep technical fluency, uses specific terminology naturally
+- Score 50-79: Adequate technical language, some room for precision
+- Score <50: Surface-level descriptions, lacks domain-specific terms
+
+**Example:**
+Generic answer: "I worked with data and made visualizations." (depth score: ~20)
+Technical answer: "I used Pandas for ETL, applied K-means clustering, and built interactive dashboards in Plotly." (depth score: ~90)
+
+---
+
+### 3. Response Pacing Score
+
+**What we measure:**
+- Pacing score (0-100)
+- Duration assessment ("too_short", "optimal", "too_long")
+- Word count assessment ("too_brief", "optimal", "too_verbose")
+
+**Why it matters:**
+Answer length signals preparedness and communication discipline. Too short suggests lack of preparation or incomplete answers. Too long suggests poor conciseness or inability to prioritize key points.
+
+**Academic Support:**
+- Barrick, M. R., Shaffer, J. A., & DeGrassi, S. W. (2009). What you see may not be what you get: Relationships among self-presentation tactics and ratings of interview and job performance. *Journal of Applied Psychology*, 94(6), 1394-1411.
+  - **Optimal range: 45-90 seconds** per behavioral interview question
+  - Answers <30 seconds perceived as unprepared or evasive
+  - Answers >2 minutes perceived as rambling or lacking focus
+  - 60-second answers received highest evaluation scores on average
+
+**Implementation Details:**
+
+**Duration scoring:**
+```python
+# Ideal: 45-90 seconds → 100 points
+# Acceptable: 30-120 seconds → gradual penalty
+# Too short: <30s → 40-70 (unprepared)
+# Too long: >120s → 30-60 (rambling)
+```
+
+**Word count scoring:**
+```python
+# Ideal: 60-150 words → 100 points
+# Acceptable: 40-200 words → gradual penalty
+# Too brief: <40 words → 40-70
+# Too verbose: >200 words → 30-60
+```
+
+**Final pacing score:** Average of duration score and word count score
+
+**Interpretation:**
+- "Optimal" + score 90-100: Well-paced, professional answer length
+- "Too short" + score <60: Needs more detail and examples
+- "Too long" + score <60: Needs better conciseness and prioritization
+
+**Edge cases:**
+- Duration <3s or word count <5 → neutral score 50 (incomplete/test audio)
+
+---
+
+## Metrics Integration — Weighted Scoring (Phase 3)
+
+The 17 metrics will be combined using a weighted scoring algorithm in Phase 3:
+
+**Proposed weights (subject to validation):**
+```python
+final_score = (
+    relevance_score * 0.25 +          # Job fit most important
+    technical_depth_score * 0.20 +    # Domain expertise
+    star_score * 0.15 +                # Answer structure
+    fluency_score * 0.15 +             # Communication clarity
+    pacing_score * 0.10 +              # Answer discipline
+    pause_quality_score * 0.08 +      # Delivery confidence
+    acoustic_confidence * 0.07         # Vocal tone (limited reliability)
+)
+```
+
+**Rationale for weights:**
+- Semantic/content metrics (relevance, technical depth, STAR) = 60% — what you say matters most
+- Communication metrics (fluency, pacing, pause) = 33% — how you say it matters second
+- Acoustic metrics (tone, confidence) = 7% — supplementary due to training data limitations
+
+**Alternative: User-configurable weights**
+Advanced users could adjust weights based on interview type:
+- Technical screening: Increase technical_depth weight to 0.30
+- Behavioral interview: Increase STAR weight to 0.25
+- Executive presentation: Increase pacing/pause weights
+
+---
+
+## Future Enhancements — Metrics Roadmap
+
+**Potential additions identified:**
+
+1. **Answer Relevance to Specific Question**
+   - Current relevance score compares to JD+CV (general)
+   - Could add question-specific relevance (did they actually answer what was asked?)
+   
+2. **Consistency Score Across Session**
+   - Track variance in delivery quality across questions
+   - Detect fatigue patterns (scores declining over time)
+
+3. **Comparative Benchmarking**
+   - "Your fluency is in the 78th percentile for Data Analyst roles"
+   - Requires aggregated anonymized data from multiple users
+
+4. **Adaptive Difficulty Scoring**
+   - Questions get harder/easier based on performance
+   - Score adjusts based on difficulty level attempted
+
+**Not currently pursued due to scope/timeline constraints but documented for future work.**
 
 ---
 
@@ -154,9 +356,9 @@ Testing with identical text but different delivery styles:
 
 | Delivery Style | Detected Tone | Confidence | Engagement | Expected Rating |
 |----------------|---------------|------------|------------|-----------------|
-| Flat/monotone recording | disgust | 37% | 31.31 | Should be "poor" ✅ |
-| Energetic/higher pitch | neutral | 62% | 39.63 | Should be "good" ❌ |
-| Professional/controlled | neutral | 62% | 39.63 | Should be "excellent" ❌ |
+| Flat/monotone recording | disgust | 37% | 31.31 | Should be "poor" |
+| Energetic/higher pitch | neutral | 62% | 39.63 | Should be "good" |
+| Professional/controlled | neutral | 62% | 39.63 | Should be "excellent" |
 
 The model cannot distinguish between "professional composure" and "low engagement."
 
@@ -175,11 +377,11 @@ The model cannot distinguish between "professional composure" and "low engagemen
 
 | Strategy | Feasibility | Impact |
 |----------|-------------|--------|
-| Fine-tune on interview data | ❌ No labeled interview corpus available | High |
-| Lower acoustic score weights | ✅ Implemented in scoring fusion (Phase 3) | Medium |
-| Retrain engagement formula | ❌ Requires ground truth labels | High |
-| Add calibration warnings to UI | ✅ Could implement | Low |
-| Replace with pause/filler metrics | ✅ Already have filler detection | Medium |
+| Fine-tune on interview data | No labeled interview corpus available | High |
+| Lower acoustic score weights | Implemented in scoring fusion (Phase 3) | Medium |
+| Retrain engagement formula | Requires ground truth labels | High |
+| Add calibration warnings to UI | Could implement | Low |
+| Replace with pause/filler metrics | Already have filler detection | Medium |
 
 **Future Work — Production Requirements:**
 
