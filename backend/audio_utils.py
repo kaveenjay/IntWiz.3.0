@@ -398,6 +398,62 @@ Return format: ["term1", "term2", "term3", ...]"""
     }
 
 
+def calculate_pacing_score(duration_seconds: float, word_count: int) -> dict:
+    """
+    Evaluates answer length against research-backed optimal ranges.
+    Based on Barrick et al. (2009) showing optimal interview answers
+    are 45-90 seconds. Balances preparedness (not too short) with
+    conciseness (not rambling).
+
+    Args:
+        duration_seconds: How long the answer took
+        word_count: Total words in the transcript
+
+    Returns:
+        Dictionary with pacing_score, duration_assessment, word_count_assessment
+    """
+    default = {"pacing_score": 50, "duration_assessment": "optimal", "word_count_assessment": "optimal"}
+
+    if duration_seconds < 3 or word_count < 5:
+        return default
+
+    def _deviation_penalty(value, ideal_min, ideal_max, acceptable_min, acceptable_max):
+        if ideal_min <= value <= ideal_max:
+            return 100
+        elif acceptable_min <= value < ideal_min:
+            return 70 + 30 * ((value - acceptable_min) / (ideal_min - acceptable_min))
+        elif ideal_max < value <= acceptable_max:
+            return 100 - 30 * ((value - ideal_max) / (acceptable_max - ideal_max))
+        elif value < acceptable_min:
+            return max(40, 70 - 30 * ((acceptable_min - value) / acceptable_min))
+        else:  # value > acceptable_max
+            return max(30, 70 - 40 * ((value - acceptable_max) / acceptable_max))
+
+    duration_score = _deviation_penalty(duration_seconds, 45, 90, 30, 120)
+    word_score = _deviation_penalty(word_count, 60, 150, 40, 200)
+    pacing_score = round((duration_score + word_score) / 2)
+
+    if duration_seconds < 45:
+        duration_assessment = "too_short"
+    elif duration_seconds <= 90:
+        duration_assessment = "optimal"
+    else:
+        duration_assessment = "too_long"
+
+    if word_count < 60:
+        word_count_assessment = "too_brief"
+    elif word_count <= 150:
+        word_count_assessment = "optimal"
+    else:
+        word_count_assessment = "too_verbose"
+
+    return {
+        "pacing_score": pacing_score,
+        "duration_assessment": duration_assessment,
+        "word_count_assessment": word_count_assessment
+    }
+
+
 def calculate_relevance_score(transcript: str, reference_text: str) -> float:
     """
     Calculates semantic relevance between candidate's answer and job requirements.

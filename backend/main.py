@@ -17,6 +17,7 @@ from audio_utils import (
     calculate_relevance_score,
     analyze_pause_patterns,
     calculate_technical_depth,
+    calculate_pacing_score,
 )
 
 # Load environment variables
@@ -158,14 +159,18 @@ async def analyze_audio(
         # 6. Fluency metrics
         fluency = calculate_fluency_metrics(transcript, duration_seconds)
 
-        # 7. Technical depth score
+        # 7. Response pacing score
+        word_count = len(transcript.split())
+        pacing = calculate_pacing_score(duration_seconds, word_count)
+
+        # 8. Technical depth score
         tech_depth = calculate_technical_depth(transcript, job_description_text, cv_text)
 
-        # 8. Relevance score against CV + JD if context was provided
+        # 9. Relevance score against CV + JD if context was provided
         reference = cv_text + " " + job_description_text
         relevance_score = calculate_relevance_score(transcript, reference) if len(reference.strip()) > 20 else 50.0
 
-        # 9. STAR method structural analysis via LLM
+        # 10. STAR method structural analysis via LLM
         star_prompt = f"""Analyze this interview answer and return ONLY valid JSON with no markdown, no backticks:
 {{
   "star_score": <integer 0-100>,
@@ -190,7 +195,7 @@ Interview answer: {transcript}"""
                 "has_result": False
             }
 
-        # 10. Cleanup
+        # 11. Cleanup
         os.remove(file_path)
         if os.path.exists(converted_path):
             os.remove(converted_path)
@@ -206,6 +211,9 @@ Interview answer: {transcript}"""
                 "filler_word_count": fluency["filler_word_count"],
                 "filler_words_detected": fluency["filler_words_detected"],
                 "fluency_score": fluency["fluency_score"],
+                "pacing_score": pacing["pacing_score"],
+                "duration_assessment": pacing["duration_assessment"],
+                "word_count_assessment": pacing["word_count_assessment"],
                 "pause_count": pause_analysis["pause_count"],
                 "average_pause_duration": pause_analysis["average_pause_duration"],
                 "pause_quality_score": pause_analysis["pause_quality_score"],
