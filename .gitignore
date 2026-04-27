@@ -228,3 +228,29 @@ build/
 # Firebase
 firebase-debug.log
 .firebaserc
+
+# Environment and secrets
+.env
+serviceAccountKey.json
+*.json
+!package.json
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+
+# Audio files (temporary)
+*.wav
+*.webm
+*.mp3
+*.m4a
+*.ogg
+*.mp4
