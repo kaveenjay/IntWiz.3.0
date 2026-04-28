@@ -20,6 +20,9 @@ from audio_utils import (
     calculate_pacing_score,
 )
 from storage_utils import upload_audio_to_storage
+from firebase_config import db
+from firebase_admin import firestore
+from datetime import datetime
 
 # Load environment variables
 load_dotenv()
@@ -563,3 +566,192 @@ async def generate_next_question(
         "question_number": current_question_count + 1,
         "reasoning": reasoning,
     }
+
+
+# ---------------------------------------------------------------------------
+# Report storage and retrieval
+# ---------------------------------------------------------------------------
+
+@app.post("/save-report/")
+async def save_report(
+    user_id: str = Form(...),
+    cv_text: str = Form(""),
+    jd_text: str = Form(""),
+    interview_results: str = Form(...),
+    target_questions: int = Form(0),
+):
+    """
+    Persists a completed interview session to Firestore.
+
+    Computes aggregate scores across all Q&A turns, generates a 2-3 sentence
+    AI summary via Groq, then writes the full document to the "reports" collection.
+    cv_text and jd_text are truncated to 2 000 chars each to stay well within
+    Firestore's 1 MB per-document limit.
+    """
+    try:
+        results = json.loads(interview_results)
+    except json.JSONDecodeError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid interview_results JSON: {e}")
+
+    if not results:
+        raise HTTPException(status_code=400, detail="No interview results provided")
+
+    try:
+        n = len(results)
+
+        avg_relevance  = sum(q.get('relevance_score',      0) for q in results) / n
+        avg_fluency    = sum(q.get('fluency_score',         0) for q in results) / n
+        avg_technical  = sum(q.get('technical_depth_score', 0) for q in results) / n
+        avg_pacing     = sum(q.get('pacing_score',          0) for q in results) / n
+        avg_pause      = sum(q.get('pause_quality_score',   0) for q in results) / n
+        avg_star       = sum(q.get('star_analysis', {}).get('star_score', 0) for q in results) / n
+        avg_confidence = sum(q.get('confidence_score',      0) for q in results) / n
+
+        overall_score = (
+            avg_relevance  * 0.25 +
+            avg_technical  * 0.20 +
+            avg_star       * 0.15 +
+            avg_fluency    * 0.15 +
+            avg_pacing     * 0.10 +
+            avg_pause      * 0.08 +
+            avg_confidence * 0.07
+        )
+
+        emotions = [q.get('detected_tone', 'neutral') for q in results]
+        dominant_emotion = max(set(emotions), key=emotions.count)
+        total_fillers = sum(q.get('filler_word_count', 0) for q in results)
+
+        summary_prompt = f"""Based on this interview performance, write a 2-3 sentence feedback summary:
+
+Overall Score: {overall_score:.0f}/100
+Average Relevance: {avg_relevance:.0f}
+Average Fluency: {avg_fluency:.0f}
+Average Technical Depth: {avg_technical:.0f}
+Average STAR Structure: {avg_star:.0f}
+Total Filler Words: {total_fillers}
+Question Count: {n}
+Dominant Emotion: {dominant_emotion}
+
+Provide constructive feedback highlighting one strength and one area for improvement. Be specific and actionable."""
+
+        try:
+            summary_response = groq_client.chat.completions.create(
+                model="llama-3.3-70b-versatile",
+                messages=[{"role": "user", "content": summary_prompt}],
+                temperature=0.7,
+                max_tokens=200,
+            )
+            ai_summary = summary_response.choices[0].message.content.strip()
+        except Exception:
+            ai_summary = "Interview completed successfully. Review individual question scores for detailed feedback."
+
+        report_data = {
+            "user_id":               user_id,
+            "timestamp":             firestore.SERVER_TIMESTAMP,
+            "overall_score":         round(overall_score, 1),
+            "dominant_emotion":      dominant_emotion,
+            "ai_summary":            ai_summary,
+            "question_count":        n,
+            "target_questions":      target_questions,
+            "mode":                  "fixed" if target_questions > 0 else "adaptive",
+            "average_relevance":     round(avg_relevance,  1),
+            "average_fluency":       round(avg_fluency,    1),
+            "average_technical_depth": round(avg_technical, 1),
+            "average_pacing":        round(avg_pacing,     1),
+            "average_pause_quality": round(avg_pause,      1),
+            "average_star":          round(avg_star,       1),
+            "total_filler_words":    total_fillers,
+            "interview_results":     results,
+            "cv_text":               cv_text[:2000],
+            "jd_text":               jd_text[:2000],
+        }
+
+        _, doc_ref = db.collection("reports").add(report_data)
+
+        return {
+            "report_id":   doc_ref.id,
+            "status":      "success",
+            "overall_score": round(overall_score, 1),
+            "ai_summary":  ai_summary,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error saving report: {e}")
+
+
+@app.get("/get-report/{report_id}")
+async def get_report(report_id: str):
+    """
+    Returns the full interview report document for a given report ID.
+
+    The Firestore SERVER_TIMESTAMP is converted to an ISO 8601 string so the
+    response is JSON-serialisable without custom encoder configuration.
+    """
+    try:
+        doc = db.collection("reports").document(report_id).get()
+
+        if not doc.exists:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        report_data = doc.to_dict()
+        report_data["report_id"] = report_id
+
+        ts = report_data.get("timestamp")
+        if ts is not None:
+            report_data["timestamp"] = ts.isoformat()
+
+        return report_data
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching report: {e}")
+
+
+@app.get("/get-user-reports/{user_id}")
+async def get_user_reports(user_id: str, limit: int = 20):
+    """
+    Lists summary cards for all of a user's past interviews, newest first.
+
+    Heavy fields (interview_results, cv_text, jd_text) are excluded from the
+    list response to keep payloads small. The frontend fetches the full document
+    via /get-report/{report_id} only when the user opens a specific report.
+    """
+    try:
+        query = (
+            db.collection("reports")
+            .where("user_id", "==", user_id)
+            .order_by("timestamp", direction=firestore.Query.DESCENDING)
+            .limit(limit)
+        )
+
+        reports = []
+        for doc in query.stream():
+            data = doc.to_dict()
+
+            ts = data.get("timestamp")
+            timestamp_str = ts.isoformat() if ts is not None else None
+
+            reports.append({
+                "report_id":              doc.id,
+                "timestamp":              timestamp_str,
+                "overall_score":          data.get("overall_score"),
+                "dominant_emotion":       data.get("dominant_emotion"),
+                "question_count":         data.get("question_count"),
+                "mode":                   data.get("mode"),
+                "ai_summary":             data.get("ai_summary"),
+                "average_relevance":      data.get("average_relevance"),
+                "average_fluency":        data.get("average_fluency"),
+                "average_technical_depth": data.get("average_technical_depth"),
+            })
+
+        return {
+            "user_id":      user_id,
+            "report_count": len(reports),
+            "reports":      reports,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error fetching user reports: {e}")
