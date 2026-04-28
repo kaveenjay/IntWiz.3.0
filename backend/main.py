@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from groq import Groq
 import fitz  # PyMuPDF for PDF text extraction
 
-# Import ML functions
+# Import ML and storage functions
 import librosa
 from audio_utils import (
     analyze_audio_file,
@@ -19,6 +19,7 @@ from audio_utils import (
     calculate_technical_depth,
     calculate_pacing_score,
 )
+from storage_utils import upload_audio_to_storage
 
 # Load environment variables
 load_dotenv()
@@ -111,7 +112,11 @@ async def analyze_audio(
     file: UploadFile = File(...),
     cv_text: str = Form(""),
     job_description_text: str = Form(""),
-    question: str = Form("")
+    question: str = Form(""),
+    save_audio: bool = Form(False),
+    user_id: str = Form(""),
+    interview_id: str = Form(""),
+    question_number: int = Form(1),
 ):
     """
     Performs comprehensive multimodal analysis of interview audio.
@@ -195,7 +200,21 @@ Interview answer: {transcript}"""
                 "has_result": False
             }
 
-        # 11. Cleanup
+        # 11. Optionally persist audio to Firebase Storage (user-controlled, privacy by default)
+        audio_url = None
+        audio_saved = False
+        if save_audio and user_id and interview_id:
+            upload_result = upload_audio_to_storage(
+                file_path=converted_path,
+                user_id=user_id,
+                interview_id=interview_id,
+                question_number=question_number,
+            )
+            if upload_result['success']:
+                audio_url = upload_result['audio_url']
+                audio_saved = True
+
+        # 12. Cleanup
         os.remove(file_path)
         if os.path.exists(converted_path):
             os.remove(converted_path)
@@ -222,7 +241,9 @@ Interview answer: {transcript}"""
                 "technical_depth_score": tech_depth["technical_depth_score"],
                 "relevant_terms_extracted": tech_depth["relevant_terms_extracted"],
                 "relevance_score": relevance_score,
-                "star_analysis": star_analysis
+                "star_analysis": star_analysis,
+                "audio_saved": audio_saved,
+                "audio_url": audio_url,
             }
         }
 
