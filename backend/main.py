@@ -353,3 +353,213 @@ Job Description:
             if os.path.exists(path):
                 os.remove(path)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ---------------------------------------------------------------------------
+# Adaptive interview helpers (used only by /generate-next-question/)
+# ---------------------------------------------------------------------------
+
+def _analyze_history(history: list) -> dict:
+    """Computes aggregate metrics and performance trend from conversation history."""
+    if not history:
+        return {}
+
+    avg_relevance  = sum(q['relevance_score']       for q in history) / len(history)
+    avg_star       = sum(q['star_score']             for q in history) / len(history)
+    avg_technical  = sum(q['technical_depth_score']  for q in history) / len(history)
+
+    if len(history) >= 3:
+        recent_avg = sum(q['overall_score'] for q in history[-2:]) / 2
+        early_avg  = sum(q['overall_score'] for q in history[:2])  / 2
+        if   recent_avg > early_avg + 10: trend = "improving"
+        elif recent_avg < early_avg - 10: trend = "declining"
+        else:                             trend = "stable"
+    else:
+        trend = "establishing baseline"
+
+    return {
+        'avg_relevance': round(avg_relevance, 1),
+        'avg_star':      round(avg_star,      1),
+        'avg_technical': round(avg_technical, 1),
+        'trend':         trend,
+        # First 50 chars of each question gives the LLM enough topic signal
+        'topics_covered': [q['question'][:50] for q in history],
+    }
+
+
+def _format_history_for_llm(history: list) -> str:
+    """Formats Q&A pairs for inclusion in an LLM prompt."""
+    lines = []
+    for i, qa in enumerate(history, 1):
+        excerpt = qa['transcript'][:150].rstrip()
+        if len(qa['transcript']) > 150:
+            excerpt += "..."
+        lines.append(f"Q{i}: {qa['question']}")
+        lines.append(f"A{i}: {excerpt}")
+        lines.append(
+            f"Scores — Relevance: {qa['relevance_score']}, "
+            f"STAR: {qa['star_score']}, "
+            f"Technical depth: {qa['technical_depth_score']}\n"
+        )
+    return "\n".join(lines)
+
+
+def _directive_for_performance(summary: dict) -> str:
+    """Returns a tailored instruction for the LLM based on current performance."""
+    avg_overall = (
+        summary['avg_relevance'] + summary['avg_star'] + summary['avg_technical']
+    ) / 3
+
+    if summary['trend'] == "declining" or avg_overall < 50:
+        return (
+            "Ask a simpler, more supportive question that gives the candidate a chance "
+            "to demonstrate a strength or recover their confidence"
+        )
+    if summary['trend'] == "improving" or avg_overall >= 75:
+        return (
+            "Challenge the candidate with a deeper follow-up that probes specifics, "
+            "trade-offs, or edge-case thinking on a topic they answered well"
+        )
+    # stable or establishing baseline
+    return (
+        "Ask about a key skill from the job description that has not yet been covered "
+        "in the conversation above"
+    )
+
+
+def _build_adaptive_prompt(
+    cv_text: str,
+    jd_text: str,
+    history: list,
+    current_count: int,
+) -> str:
+    if current_count == 0:
+        return f"""You are an expert interviewer conducting a behavioral interview.
+
+CV Summary:
+{cv_text[:500]}
+
+Job Requirements:
+{jd_text[:500]}
+
+Generate ONE opening question that:
+1. Is broad enough to let the candidate showcase their background
+2. Is relevant to the role requirements
+3. Follows the format: "Tell me about your experience with [key skill from JD]"
+
+Return ONLY the question text, no preamble."""
+
+    summary = _analyze_history(history)
+    return f"""You are an expert interviewer conducting an adaptive behavioral interview.
+
+PREVIOUS CONVERSATION:
+{_format_history_for_llm(history)}
+
+PERFORMANCE ANALYSIS:
+- Average relevance:       {summary['avg_relevance']}/100
+- Average STAR structure:  {summary['avg_star']}/100
+- Average technical depth: {summary['avg_technical']}/100
+- Trend: {summary['trend']}
+
+TOPICS ALREADY COVERED:
+{chr(10).join(f'- {t}' for t in summary['topics_covered'])}
+
+Generate the NEXT question that:
+1. {_directive_for_performance(summary)}
+2. Probes deeper into specific skills claimed in the CV but not yet demonstrated
+3. Invites a STAR-style answer (Situation, Task, Action, Result)
+
+Return ONLY the question text, no explanation."""
+
+
+def _should_stop_interview(
+    history: list,
+    current_count: int,
+    target_questions: int,
+) -> bool:
+    """Returns True when the interview should end."""
+    if target_questions > 0:
+        return current_count >= target_questions
+
+    # Adaptive upper limit
+    if current_count >= 10:
+        return True
+
+    # Consistent struggle: last 3 answers all scored below 40
+    if current_count >= 3:
+        recent = [q['overall_score'] for q in history[-3:]]
+        if all(s < 40 for s in recent):
+            return True
+
+    return False
+
+
+_FALLBACK_QUESTIONS = [
+    "Can you walk me through a challenging project you led and what you learned from it?",
+    "Describe a situation where you had to quickly learn a new technology to solve a problem.",
+    "Tell me about a time you disagreed with a team decision and how you handled it.",
+    "What's the most complex technical problem you've solved, and how did you approach it?",
+    "Describe a project where you had to balance competing priorities under a deadline.",
+]
+
+
+@app.post("/generate-next-question/")
+async def generate_next_question(
+    cv_text: str = Form(...),
+    job_description_text: str = Form(...),
+    conversation_history: str = Form("[]"),
+    current_question_count: int = Form(0),
+    target_questions: int = Form(0),
+):
+    """
+    Generates the next adaptive interview question based on conversation history.
+
+    For the first question, produces a broad role-relevant opener.
+    For subsequent questions, analyses performance trends and topic coverage
+    to decide whether to probe deeper, shift topic, or offer recovery space.
+
+    Stopping criteria:
+    - Fixed mode (target_questions > 0): stop when count reaches target
+    - Adaptive mode: stop at 10 questions, or if last 3 scores < 40
+    """
+    try:
+        history = json.loads(conversation_history)
+        if not isinstance(history, list):
+            raise ValueError("conversation_history must be a JSON array")
+    except (json.JSONDecodeError, ValueError) as e:
+        raise HTTPException(status_code=400, detail=f"Invalid conversation_history: {e}")
+
+    should_stop = _should_stop_interview(history, current_question_count, target_questions)
+
+    if should_stop:
+        return {
+            "question": None,
+            "should_continue": False,
+            "question_number": current_question_count + 1,
+            "reasoning": "Interview complete — stopping criteria met.",
+        }
+
+    prompt = _build_adaptive_prompt(cv_text, job_description_text, history, current_question_count)
+    next_question = call_groq_llm(prompt).strip()
+
+    # Strip any accidental numbering or quotation marks the model may have added
+    next_question = next_question.lstrip("0123456789.)- \"'").strip().strip("\"'")
+
+    if not next_question:
+        # Rotate through fallbacks rather than always returning the same one
+        next_question = _FALLBACK_QUESTIONS[current_question_count % len(_FALLBACK_QUESTIONS)]
+        reasoning = "Groq unavailable — fallback question used."
+    else:
+        summary = _analyze_history(history) if history else {}
+        trend = summary.get('trend', 'establishing baseline')
+        reasoning = (
+            f"Adaptive question for Q{current_question_count + 1}; "
+            f"performance trend: {trend}."
+        )
+
+    return {
+        "question": next_question,
+        "should_continue": True,
+        "question_number": current_question_count + 1,
+        "reasoning": reasoning,
+    }
