@@ -112,6 +112,16 @@ For the current prototype, TF-IDF provides sufficient relevance detection while 
 
 ---
 
+### Firestore Compound Indexes
+The /get-user-reports/ endpoint requires a compound index on the reports
+collection (user_id + timestamp) because it filters by user and sorts by date.
+This is automatically created on first query failure with a one-click setup link.
+
+Trade-off: Forces developers to think about query patterns upfront, ensuring
+predictable performance at scale.
+
+---
+
 ## Additional Evaluation Metrics — Supervisor Feedback Integration
 
 **Context:** Following supervisor meeting on April 22, 2026, three additional metrics were added to strengthen the evaluation framework and provide more comprehensive performance assessment.
@@ -423,3 +433,239 @@ This highlights:
 **Conclusion:**
 
 The acoustic model serves its purpose as a proof-of-concept for multimodal analysis architecture. However, the current implementation prioritizes **linguistic analysis** (fluency, relevance, STAR structure) which performs reliably on real interview speech. The acoustic features remain in the system to demonstrate the multimodal approach but should be weighted appropriately in final scoring until domain-specific recalibration is performed.
+
+---
+
+## Phase 4 Frontend — Architecture Decisions
+
+### Decision: React 19 + TypeScript + Vite (vs alternatives)
+
+**Context:** Need a modern, maintainable frontend framework for the IntWiz interface.
+
+**Options Considered:**
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **React + TypeScript + Vite** | Industry standard, type safety, fast dev server, large ecosystem, hireable skills | Steeper learning curve than vanilla JS |
+| Next.js | Server-side rendering, full-stack capable | Overkill for our needs, separate backend already exists |
+| Vue.js | Simpler than React, gentle learning curve | Smaller ecosystem, less industry adoption |
+| Vanilla JavaScript | No build process, simplest | No type safety, manual state management, harder to scale |
+
+**Decision:** React 19 + TypeScript + Vite
+
+**Rationale:**
+- React is the dominant frontend framework (60%+ market share)
+- TypeScript catches bugs at compile time (estimated 15-20% bug reduction)
+- Vite provides 10x faster dev server than Create React App
+- Demonstrates marketable skills for post-graduation employment
+- Strong ecosystem of libraries (UI components, state management, etc.)
+- Type system documents component contracts implicitly
+
+**Trade-offs Accepted:**
+- More complex setup than vanilla JS
+- TypeScript adds compilation step (mitigated by Vite's speed)
+- Larger bundle size than smaller frameworks
+
+---
+
+### Decision: Tailwind CSS (vs alternatives)
+
+**Context:** Need a styling solution that matches our wireframe design system consistently.
+
+**Options Considered:**
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **Tailwind CSS** | Design system enforced via config, fast iteration, no naming conflicts, small production bundle | Long class strings, learning curve for utility-first |
+| CSS Modules | Component-scoped styles, no naming conflicts | Verbose, requires CSS file per component |
+| Styled-Components | CSS-in-JS, dynamic styling | Runtime overhead, larger bundle |
+| Plain CSS | Simple, universal | Naming conflicts, hard to maintain at scale |
+| SCSS/Sass | Variables, mixins, nesting | Still has naming conflict issues |
+
+**Decision:** Tailwind CSS 3 with custom design tokens
+
+**Rationale:**
+- Custom config defines our design system (colors, fonts, spacing)
+- Utility classes prevent CSS bloat (only used styles included in production)
+- Faster development than writing custom CSS
+- Industry adoption is high (used by major companies: GitHub, Netflix, Shopify)
+- JIT compiler produces optimized output
+
+**Implementation:**
+```javascript
+// Custom design tokens matching wireframe
+colors: {
+  'page': '#F4F1EA',      // Cream background
+  'accent': '#2D4A3E',    // Forest green accent
+  'ink': '#1A1814',       // Primary text
+  // ... 12 more semantic color tokens
+}
+```
+
+**Trade-offs Accepted:**
+- Verbose className attributes in JSX
+- Initial learning curve for utility-first methodology
+- Risk of inconsistency if developers don't reference design tokens
+
+---
+
+### Decision: Firebase Authentication (vs custom auth)
+
+**Context:** Need user authentication for accessing IntWiz interview history and personalization.
+
+**Options Considered:**
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **Firebase Authentication** | Free tier, handles security complexity, integrated with Firestore, social login support, JWT tokens auto-managed | Vendor lock-in, requires Firebase ecosystem |
+| Custom JWT auth (FastAPI) | Full control, no vendor lock-in | Must implement password hashing, token rotation, password reset flows |
+| Auth0 | Enterprise-grade features | Paid for production volumes, more complex setup |
+| Clerk | Modern developer experience, prebuilt UI | Paid for production, newer service |
+| AWS Cognito | Integrates with AWS services | Complex setup, steep learning curve |
+
+**Decision:** Firebase Authentication
+
+**Rationale:**
+- Already using Firebase Firestore for backend → consistent ecosystem
+- Free tier supports 10,000 monthly active users
+- Eliminates entire categories of security bugs (password storage, session management, token rotation)
+- Email verification, password reset, MFA all available via configuration
+- JWT tokens managed automatically (no manual token refresh logic)
+- Future expansion: Easy to add Google/GitHub sign-in later
+
+**Implementation Pattern:**
+- Frontend: Firebase Auth SDK with React Context
+- AuthContext provides global auth state via `useAuth()` hook
+- ProtectedRoute component guards authenticated pages
+- onAuthStateChanged listener auto-syncs UI with auth state
+
+**Trade-offs Accepted:**
+- Vendor lock-in (mitigated: auth logic could be migrated)
+- Less customization of authentication flows
+- Email/password in plaintext during transit (mitigated by HTTPS in production)
+
+---
+
+### Decision: React Context for Auth State (vs Redux/Zustand)
+
+**Context:** Need to share authentication state across all components.
+
+**Options Considered:**
+
+| Option | Pros | Cons |
+|--------|------|------|
+| **React Context** | Built into React, no extra dependencies, simple API | Re-renders all consumers on state change |
+| Redux Toolkit | Industry standard, time-travel debugging, middleware ecosystem | Boilerplate code, learning curve, overkill for auth-only state |
+| Zustand | Minimal API, performant, no providers | Another dependency, less mature ecosystem |
+| Jotai/Recoil | Atomic state management | Extra dependency, less common in industry |
+
+**Decision:** React Context for auth state
+
+**Rationale:**
+- Auth state changes infrequently (login/logout events only)
+- Single piece of global state (no complex state graph)
+- No external dependency (smaller bundle, fewer security concerns)
+- Built-in to React, less to learn
+- Performance impact negligible at our scale
+
+**When to Reconsider:**
+If we add complex global state (e.g., shopping cart, real-time notifications), we may migrate to Zustand or Redux Toolkit.
+
+---
+
+### Decision: Environment Variables for Config (.env.local)
+
+**Context:** Firebase config contains API keys that, while public-facing, should be managed cleanly.
+
+**Decision:** Use Vite's environment variable system with `.env.local`
+
+**Rationale:**
+- Separation of code and configuration
+- Easy to swap configs between dev/staging/production
+- `.local` suffix automatically gitignored
+- `VITE_` prefix prevents accidental server-side variable exposure
+- Standard practice in modern frontend development
+
+**Note on Firebase API Keys:**
+Firebase web API keys are **not secret credentials**. They identify which Firebase project to talk to but don't grant any privileges. Security is enforced by:
+1. Firestore Security Rules (will configure in Phase 4 polish)
+2. Storage Security Rules (controls who can upload/read)
+3. Authentication state (only logged-in users can access user data)
+
+Despite being non-secret, we still gitignore `.env.local` for:
+- Hygiene (separate config from code)
+- Future-proofing (in case real secrets are added later)
+- Easier environment management across deployments
+
+---
+
+### Decision: Type-Only Imports for TypeScript
+
+**Context:** Modern TypeScript with strict bundler configuration requires explicit type-only imports.
+
+**Issue Encountered:**
+```typescript
+// This fails:
+import { User } from "firebase/auth";
+// Error: does not provide an export named 'User'
+
+// This works:
+import type { User } from "firebase/auth";
+```
+
+**Rationale:**
+- TypeScript types don't exist at runtime (stripped during compilation)
+- Bundlers (Vite, esbuild) need explicit hints to handle type-only imports
+- Mixing types and values in same import statement causes runtime errors
+- Best practice for modern TypeScript (TS 5.0+)
+
+**Convention Adopted:**
+```typescript
+// Runtime values (functions, objects, components):
+import { signInWithEmailAndPassword, signOut } from "firebase/auth";
+
+// Compile-time types only:
+import type { User } from "firebase/auth";
+import type { ReactNode } from "react";
+```
+
+This produces smaller bundles and clearer code intent.
+
+---
+
+### Decision: Routing Structure
+
+**Context:** Need URL-based navigation for different pages.
+
+**Routes Planned:**
+
+| Route | Type | Purpose |
+|-------|------|---------|
+| `/` | Redirect | Sends to `/dashboard` |
+| `/login` | Public | Login page |
+| `/register` | Public | Account creation |
+| `/dashboard` | Protected | User home with interview history |
+| `/interview/setup` | Protected | Configure new interview |
+| `/interview/active` | Protected | Live interview room |
+| `/results/:id` | Protected | Specific interview results |
+
+**Decision:** React Router DOM v7 with declarative routes
+
+**Rationale:**
+- Industry standard for React routing
+- URL-based navigation supports browser back/forward buttons
+- Bookmarkable pages (e.g., user can save link to specific interview report)
+- Clean separation between authenticated and public routes via ProtectedRoute wrapper
+
+---
+
+### Future Phase 4 Decisions (To Document Later)
+
+- **Form validation library:** Native HTML5 vs React Hook Form vs Formik
+- **Audio recording approach:** Browser MediaRecorder API vs library (e.g., RecordRTC)
+- **PDF generation:** jsPDF vs react-pdf vs server-side
+- **State management for interview flow:** Local state vs Context vs URL state
+- **Animation library:** Framer Motion vs CSS-only vs none
+- **Error boundary strategy:** Component-level vs page-level vs global
+
+These will be added as decisions are made during feature development.
