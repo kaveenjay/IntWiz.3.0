@@ -3,6 +3,7 @@ import { useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
+import DashboardPage from "./pages/DashboardPage";
 
 function LoginPlaceholder() {
   const { login, register, user, logout } = useAuth();
@@ -87,7 +88,7 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <DashboardPlaceholder />
+            <DashboardPage />
           </ProtectedRoute>
         }
       />
