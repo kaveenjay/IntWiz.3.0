@@ -1,6 +1,7 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/ProtectedRoute";
+import LoginPage from "./pages/LoginPage";
 
 function LoginPlaceholder() {
   const { login, register, user, logout } = useAuth();
@@ -79,7 +80,7 @@ function DashboardPlaceholder() {
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPlaceholder />} />
+      <Route path="/login" element={<LoginPage />} />
       <Route
         path="/dashboard"
         element={
