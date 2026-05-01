@@ -4,6 +4,7 @@ import { ProtectedRoute } from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
+import SetupPage from "./pages/SetupPage";
 
 function LoginPlaceholder() {
   const { login, register, user, logout } = useAuth();
@@ -91,6 +92,14 @@ function App() {
             <DashboardPage />
           </ProtectedRoute>
         }
+      />
+      <Route 
+        path="/interview/setup" 
+        element={
+          <ProtectedRoute>
+            <SetupPage />
+          </ProtectedRoute>
+        } 
       />
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
     </Routes>

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { getUserReports } from "../services/api";
 import type { InterviewSummary } from "../services/api";
+import { useNavigate } from "react-router-dom";
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
@@ -29,6 +30,7 @@ function userInitials(email: string): string {
 
 function DashboardPage() {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const [reports, setReports] = useState<InterviewSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -145,7 +147,10 @@ function DashboardPage() {
           <em className="italic text-accent">{displayName}</em>
         </h1>
       </div>
-      <button className="bg-ink text-page px-8 py-5 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-3">
+      <button 
+        onClick={() => navigate("/interview/setup")}
+        className="bg-ink text-page px-8 py-5 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-3"
+      >
         Start New Interview
         <span className="font-display italic text-xl">→</span>
       </button>

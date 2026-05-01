@@ -30,6 +30,42 @@ export interface UserReportsResponse {
   reports: InterviewSummary[];
 }
 
+// ===== Question generation =====
+
+export interface GenerateQuestionsResponse {
+  questions: string[];
+  cv_text: string;
+  jd_text: string;
+}
+
+export const generateQuestions = async (
+  cvFile: File,
+  jdText: string,
+  jdFile: File | null,
+  numQuestions: number
+): Promise<GenerateQuestionsResponse> => {
+  const formData = new FormData();
+  formData.append("cv_file", cvFile);
+
+  if (jdFile) {
+    formData.append("job_description_file", jdFile);
+  } else {
+    formData.append("job_description_text", jdText);
+  }
+
+  formData.append("num_questions", numQuestions.toString());
+
+  const response = await api.post<GenerateQuestionsResponse>(
+    "/generate-questions/",
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+    }
+  );
+
+  return response.data;
+};
+
 // ===== API functions =====
 
 export const getUserReports = async (userId: string): Promise<UserReportsResponse> => {
