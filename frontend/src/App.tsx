@@ -6,6 +6,7 @@ import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import SetupPage from "./pages/SetupPage";
 import RecorderTestPage from "./pages/RecorderTestPage";
+import InterviewRoomPage from "./pages/InterviewRoomPage";
 
 function LoginPlaceholder() {
   const { login, register, user, logout } = useAuth();
@@ -103,10 +104,35 @@ function App() {
         } 
       />
       <Route 
+        path="/interview/active" 
+        element={
+          <ProtectedRoute>
+            <InterviewRoomPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
         path="/test-recorder" 
         element={
           <ProtectedRoute>
             <RecorderTestPage />
+          </ProtectedRoute>
+        } 
+      />
+      <Route 
+        path="/results/:reportId" 
+        element={
+          <ProtectedRoute>
+            <div className="min-h-screen flex items-center justify-center bg-frame">
+              <div className="text-center">
+                <div className="font-display text-5xl mb-4">
+                  Results <em className="italic text-accent">placeholder</em>
+                </div>
+                <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+                  — This page will be built in Feature 8
+                </div>
+              </div>
+            </div>
           </ProtectedRoute>
         } 
       />

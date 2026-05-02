@@ -68,6 +68,146 @@ export const generateQuestions = async (
 
 // ===== API functions =====
 
+// ===== Audio analysis =====
+
+export interface AudioAnalysisResponse {
+  filename: string;
+  status: string;
+  data: {
+    detected_tone: string;
+    confidence_score: number;
+    engagement_score: number;
+    transcript: string;
+    duration_seconds: number;
+    wpm: number;
+    filler_word_count: number;
+    filler_words_detected: string[];
+    fluency_score: number;
+    pacing_score: number;
+    duration_assessment: string;
+    word_count_assessment: string;
+    pause_count: number;
+    average_pause_duration: number;
+    pause_quality_score: number;
+    technical_terms_found: string[];
+    technical_term_count: number;
+    technical_depth_score: number;
+    relevant_terms_extracted: string[];
+    relevance_score: number;
+    star_analysis: {
+      star_score: number;
+      star_feedback: string;
+      has_situation: boolean;
+      has_action: boolean;
+      has_result: boolean;
+    };
+    audio_saved: boolean;
+    audio_url: string | null;
+  };
+}
+
+export const analyzeAudio = async (
+  audioBlob: Blob,
+  options: {
+    cvText: string;
+    jdText: string;
+    question: string;
+    saveAudio: boolean;
+    userId: string;
+    interviewId: string;
+    questionNumber: number;
+  }
+): Promise<AudioAnalysisResponse> => {
+  const formData = new FormData();
+  formData.append("file", audioBlob, "answer.webm");
+  formData.append("cv_text", options.cvText);
+  formData.append("job_description_text", options.jdText);
+  formData.append("question", options.question);
+  formData.append("save_audio", options.saveAudio ? "true" : "false");
+  formData.append("user_id", options.userId);
+  formData.append("interview_id", options.interviewId);
+  formData.append("question_number", options.questionNumber.toString());
+
+  const response = await api.post<AudioAnalysisResponse>(
+    "/analyze-audio/",
+    formData,
+    {
+      headers: { "Content-Type": "multipart/form-data" },
+      timeout: 60000, // 60s — audio analysis can take a while
+    }
+  );
+
+  return response.data;
+};
+
+// ===== Adaptive question generation =====
+
+export interface NextQuestionResponse {
+  question: string | null;
+  should_continue: boolean;
+  question_number: number;
+  reasoning: string;
+}
+
+export interface ConversationHistoryItem {
+  question: string;
+  transcript: string;
+  relevance_score: number;
+  fluency_score: number;
+  star_score: number;
+  technical_depth_score: number;
+  overall_score: number;
+}
+
+export const generateNextQuestion = async (
+  cvText: string,
+  jdText: string,
+  conversationHistory: ConversationHistoryItem[],
+  currentQuestionCount: number,
+  targetQuestions: number
+): Promise<NextQuestionResponse> => {
+  const formData = new FormData();
+  formData.append("cv_text", cvText);
+  formData.append("job_description_text", jdText);
+  formData.append("conversation_history", JSON.stringify(conversationHistory));
+  formData.append("current_question_count", currentQuestionCount.toString());
+  formData.append("target_questions", targetQuestions.toString());
+
+  const response = await api.post<NextQuestionResponse>(
+    "/generate-next-question/",
+    formData
+  );
+
+  return response.data;
+};
+
+// ===== Save report =====
+
+export interface SaveReportResponse {
+  report_id: string;
+  status: string;
+  overall_score: number;
+  ai_summary: string;
+}
+
+export const saveReport = async (
+  userId: string,
+  cvText: string,
+  jdText: string,
+  interviewResults: any[],
+  targetQuestions: number
+): Promise<SaveReportResponse> => {
+  const formData = new FormData();
+  formData.append("user_id", userId);
+  formData.append("cv_text", cvText);
+  formData.append("jd_text", jdText);
+  formData.append("interview_results", JSON.stringify(interviewResults));
+  formData.append("target_questions", targetQuestions.toString());
+
+  const response = await api.post<SaveReportResponse>("/save-report/", formData);
+  return response.data;
+};
+
 export const getUserReports = async (userId: string): Promise<UserReportsResponse> => {
   const response = await api.get<UserReportsResponse>(`/get-user-reports/${userId}`);
   return response.data;
