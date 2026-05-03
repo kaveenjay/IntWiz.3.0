@@ -261,7 +261,10 @@ function DashboardPage() {
                   / 100
                 </div>
               </div>
-              <button className="font-mono text-xs uppercase tracking-widest text-ink-soft border border-line-strong px-4 py-2.5">
+              <button 
+                onClick={() => navigate(`/results/${interview.id}`)}
+                className="font-mono text-xs uppercase tracking-widest text-ink-soft border border-line-strong px-4 py-2.5 hover:bg-soft transition-colors"
+              >
                 View →
               </button>
             </div>

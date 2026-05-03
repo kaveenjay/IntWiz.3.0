@@ -1,0 +1,540 @@
+import { useState, useEffect } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { getReport } from "../services/api";
+import type { FullReport } from "../services/api";
+
+function ResultsPage() {
+  const { reportId } = useParams<{ reportId: string }>();
+  const navigate = useNavigate();
+
+  const [report, setReport] = useState<FullReport | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [animatedScore, setAnimatedScore] = useState(0);
+  const [expandedId, setExpandedId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (!reportId) {
+      navigate("/dashboard");
+      return;
+    }
+
+    const fetchReport = async () => {
+      try {
+        const data = await getReport(reportId);
+        setReport(data);
+      } catch (err: any) {
+        console.error("Failed to fetch report:", err);
+        setError("Couldn't load your interview report.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchReport();
+  }, [reportId, navigate]);
+
+  useEffect(() => {
+    if (report) {
+      // Slight delay so the ring renders at 0 first, then animates to the real score
+      const timer = setTimeout(() => {
+        setAnimatedScore(report.overall_score);
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [report]);
+
+  // ===== LOADING STATE =====
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-frame">
+        <div className="text-center">
+          <div className="font-display text-5xl mb-4">
+            Int<em className="italic text-accent">Wiz</em>
+          </div>
+          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            — Loading
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== ERROR STATE =====
+  if (error || !report) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-frame px-12">
+        <div className="text-center max-w-md">
+          <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
+            — Something went wrong
+          </div>
+          <h1 className="font-display text-5xl mb-4">
+            Couldn't load <em className="italic text-accent">report</em>
+          </h1>
+          <p className="text-ink-soft mb-8">
+            {error || "The report you're looking for doesn't exist or couldn't be retrieved."}
+          </p>
+          <button
+            onClick={() => navigate("/dashboard")}
+            className="bg-ink text-page px-8 py-4 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ===== HELPER FUNCTIONS =====
+
+  const radius = 90;
+  const circumference = 2 * Math.PI * radius;
+  const scoreOffset = circumference * (1 - animatedScore / 100);
+
+  const getScoreTagline = (score: number): string => {
+    if (score >= 85) return "Excellent performance";
+    if (score >= 75) return "Strong performance";
+    if (score >= 65) return "Solid foundation";
+    if (score >= 50) return "Good start, room to grow";
+    return "Plenty to work on";
+  };
+
+  const formatDate = (timestamp: string): string => {
+    const date = new Date(timestamp);
+    return date.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+
+  const calculatePerQuestionScore = (q: any): number => {
+    return Math.round(
+      q.relevance_score * 0.25 +
+      q.technical_depth_score * 0.20 +
+      q.star_analysis.star_score * 0.15 +
+      q.fluency_score * 0.15 +
+      q.pacing_score * 0.10 +
+      q.pause_quality_score * 0.08 +
+      q.confidence_score * 0.07
+    );
+  };
+
+  const toRoman = (num: number): string => {
+    const numerals = ["i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix", "x", "xi", "xii"];
+    return numerals[num - 1] || num.toString();
+  };
+
+  // ===== MAIN UI =====
+  return (
+    <div className="min-h-screen bg-frame">
+
+      {/* TOP BAR */}
+      <div className="sticky top-0 bg-frame border-b border-line px-12 py-5 flex justify-between items-center z-10">
+        <Link
+          to="/dashboard"
+          className="font-mono text-xs uppercase tracking-widest text-ink-soft hover:text-ink"
+        >
+          ← Back to Dashboard
+        </Link>
+        <button
+          className="bg-ink text-page px-5 py-2.5 font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-2"
+        >
+          <span className="font-display italic text-base">↓</span>
+          Download PDF
+        </button>
+      </div>
+
+      {/* HERO SECTION */}
+      <div className="bg-soft border-b border-line py-20 px-12 text-center">
+
+        <div className="font-mono text-xs uppercase tracking-widest text-accent mb-4">
+          — Session complete · {formatDate(report.timestamp)}
+        </div>
+
+        <h1 className="font-display text-7xl leading-none mb-12">
+          Your <em className="italic text-accent">results</em>.
+        </h1>
+
+        {/* CIRCULAR SCORE RING */}
+        <div className="inline-block relative mb-8">
+          <svg width="240" height="240" className="-rotate-90">
+            <circle
+              cx="120"
+              cy="120"
+              r={radius}
+              fill="none"
+              stroke="#D4CCBA"
+              strokeWidth="8"
+            />
+            <circle
+              cx="120"
+              cy="120"
+              r={radius}
+              fill="none"
+              stroke="#2D4A3E"
+              strokeWidth="8"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={scoreOffset}
+              style={{ transition: "stroke-dashoffset 1s ease-out" }}
+            />
+          </svg>
+
+          {/* Score number overlay */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            <div className="font-display text-8xl leading-none text-ink">
+              {Math.round(report.overall_score)}
+            </div>
+            <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mt-2">
+              — out of 100
+            </div>
+          </div>
+        </div>
+
+        {/* Tagline */}
+        <div className="font-display text-3xl italic text-accent">
+          {getScoreTagline(report.overall_score)}.
+        </div>
+      </div>
+
+      {/* AI SUMMARY CARD */}
+      <div className="max-w-3xl mx-auto px-12 py-16">
+        <div className="bg-accent-bg border-l-2 border-accent p-10 relative">
+          <div className="absolute -top-5 left-8 font-display italic text-7xl text-accent leading-none">
+            "
+          </div>
+
+          <div className="font-mono text-[10px] uppercase tracking-widest text-accent mb-3 mt-3">
+            — AI-generated summary
+          </div>
+
+          <div className="font-display text-2xl leading-relaxed text-ink">
+            {report.ai_summary}
+          </div>
+        </div>
+      </div>
+
+      {/* PERFORMANCE BREAKDOWN */}
+      <div className="max-w-4xl mx-auto px-12 pb-20">
+        <h2 className="font-display text-4xl mb-10">
+          Performance <em className="italic">breakdown</em>
+        </h2>
+
+        <div className="space-y-6">
+          <MetricRow
+            label="Relevance"
+            value={Math.round(report.average_relevance)}
+            color="bg-accent"
+          />
+          <MetricRow
+            label="Technical depth"
+            value={Math.round(report.average_technical_depth)}
+            color="bg-accent-soft"
+          />
+          <MetricRow
+            label="STAR structure"
+            value={Math.round(report.average_star)}
+            color="bg-gold"
+          />
+          <MetricRow
+            label="Fluency"
+            value={Math.round(report.average_fluency)}
+            color="bg-accent-soft"
+          />
+          <MetricRow
+            label="Pacing"
+            value={Math.round(report.average_pacing)}
+            color="bg-accent"
+          />
+          <MetricRow
+            label="Pause quality"
+            value={Math.round(report.average_pause_quality)}
+            color="bg-accent-soft"
+          />
+        </div>
+
+        {/* Quick stats */}
+        <div className="mt-16 grid grid-cols-3 gap-px bg-line border border-line">
+          <div className="bg-frame p-6">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
+              Questions
+            </div>
+            <div className="font-display text-4xl">
+              {String(report.question_count).padStart(2, "0")}
+            </div>
+          </div>
+          <div className="bg-frame p-6">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
+              Mode
+            </div>
+            <div className="font-display text-2xl mt-2">
+              {report.mode === "adaptive" ? "Adaptive" : "Fixed"}
+            </div>
+          </div>
+          <div className="bg-frame p-6">
+            <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
+              Filler words
+            </div>
+            <div className="font-display text-4xl">
+              {report.total_filler_words}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* PER-QUESTION BREAKDOWN */}
+      <div className="max-w-4xl mx-auto px-12 pb-20">
+        <div className="grid grid-cols-[auto_1fr_auto] gap-6 items-center mb-10">
+          <h2 className="font-display text-4xl">
+            By <em className="italic">question</em>
+          </h2>
+          <div className="h-px bg-line-strong"></div>
+          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            {report.interview_results.length} answers
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {report.interview_results.map((q, idx) => {
+            const score = calculatePerQuestionScore(q);
+            const isExpanded = expandedId === idx;
+
+            return (
+              <div
+                key={idx}
+                className="border border-line bg-frame transition-colors"
+              >
+                {/* Card header (always visible, clickable) */}
+                <button
+                  onClick={() => setExpandedId(isExpanded ? null : idx)}
+                  className="w-full p-7 grid grid-cols-[auto_1fr_auto_auto] gap-6 items-center text-left hover:bg-soft transition-colors"
+                >
+                  {/* Roman numeral */}
+                  <div className="font-display text-3xl italic text-accent leading-none w-8 text-center">
+                    {toRoman(idx + 1)}
+                  </div>
+
+                  {/* Question text and metrics */}
+                  <div>
+                    <div className="font-medium text-base text-ink mb-1.5 leading-snug">
+                      {q.question}
+                    </div>
+                    <div className="font-mono text-[11px] text-ink-soft tracking-wide">
+                      Fluency {Math.round(q.fluency_score)} · Relevance {Math.round(q.relevance_score)} · STAR {Math.round(q.star_analysis.star_score)} · WPM {Math.round(q.wpm)}
+                    </div>
+                  </div>
+
+                  {/* Big score */}
+                  <div className="font-display text-4xl text-accent leading-none">
+                    {score}
+                  </div>
+
+                  {/* Expand chevron */}
+                  <div className={`font-display italic text-2xl text-ink-faint transition-transform ${isExpanded ? "rotate-180" : ""}`}>
+                    ↓
+                  </div>
+                </button>
+
+                {/* Expanded content */}
+                {isExpanded && (
+                  <div className="border-t border-line p-7 bg-soft space-y-8">
+
+                    {/* Transcript */}
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-3">
+                        — Your answer (transcript)
+                      </div>
+                      <div className="font-display text-lg leading-relaxed text-ink italic">
+                        "{q.transcript}"
+                      </div>
+                    </div>
+
+                    {/* All metrics grid */}
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-4">
+                        — Detailed metrics
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-8 gap-y-3 font-mono text-xs">
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Relevance</span>
+                          <span className="text-ink">{Math.round(q.relevance_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Technical depth</span>
+                          <span className="text-ink">{Math.round(q.technical_depth_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">STAR structure</span>
+                          <span className="text-ink">{Math.round(q.star_analysis.star_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Fluency</span>
+                          <span className="text-ink">{Math.round(q.fluency_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Pacing</span>
+                          <span className="text-ink">{Math.round(q.pacing_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Pause quality</span>
+                          <span className="text-ink">{Math.round(q.pause_quality_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Vocal confidence</span>
+                          <span className="text-ink">{Math.round(q.confidence_score)} / 100</span>
+                        </div>
+                        <div className="flex justify-between border-b border-line pb-2">
+                          <span className="text-ink-soft">Engagement</span>
+                          <span className="text-ink">{Math.round(q.engagement_score)} / 100</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Speech stats */}
+                    <div>
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-4">
+                        — Speech stats
+                      </div>
+                      <div className="grid grid-cols-4 gap-4 font-mono text-xs">
+                        <div className="border border-line p-3 bg-frame">
+                          <div className="text-ink-soft mb-1">Duration</div>
+                          <div className="font-display text-lg text-ink">
+                            {Math.round(q.duration_seconds)}s
+                          </div>
+                        </div>
+                        <div className="border border-line p-3 bg-frame">
+                          <div className="text-ink-soft mb-1">Words/min</div>
+                          <div className="font-display text-lg text-ink">
+                            {Math.round(q.wpm)}
+                          </div>
+                        </div>
+                        <div className="border border-line p-3 bg-frame">
+                          <div className="text-ink-soft mb-1">Filler words</div>
+                          <div className="font-display text-lg text-ink">
+                            {q.filler_word_count}
+                          </div>
+                        </div>
+                        <div className="border border-line p-3 bg-frame">
+                          <div className="text-ink-soft mb-1">Tone</div>
+                          <div className="font-display text-lg text-ink capitalize">
+                            {q.detected_tone}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* AUDIO PLAYBACK (only if saved) */}
+                    {q.audio_url && (
+                      <div className="border-t border-line pt-6">
+                        <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-3">
+                          — Listen back to your answer
+                        </div>
+                        <audio
+                          src={q.audio_url}
+                          controls
+                          className="w-full"
+                          preload="metadata"
+                        />
+                      </div>
+                    )}
+
+                    {/* STAR BREAKDOWN */}
+                    <div className="border-t border-line pt-6">
+                      <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-4">
+                        — STAR structure analysis
+                      </div>
+
+                      {/* Component indicators */}
+                      <div className="grid grid-cols-3 gap-3 mb-5">
+                        <div className={`border p-4 text-center ${
+                          q.star_analysis.has_situation
+                            ? "border-success bg-success/10"
+                            : "border-line bg-soft"
+                        }`}>
+                          <div className={`font-display text-2xl mb-1 ${
+                            q.star_analysis.has_situation ? "text-success" : "text-ink-faint"
+                          }`}>
+                            {q.star_analysis.has_situation ? "✓" : "—"}
+                          </div>
+                          <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
+                            Situation
+                          </div>
+                        </div>
+
+                        <div className={`border p-4 text-center ${
+                          q.star_analysis.has_action
+                            ? "border-success bg-success/10"
+                            : "border-line bg-soft"
+                        }`}>
+                          <div className={`font-display text-2xl mb-1 ${
+                            q.star_analysis.has_action ? "text-success" : "text-ink-faint"
+                          }`}>
+                            {q.star_analysis.has_action ? "✓" : "—"}
+                          </div>
+                          <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
+                            Action
+                          </div>
+                        </div>
+
+                        <div className={`border p-4 text-center ${
+                          q.star_analysis.has_result
+                            ? "border-success bg-success/10"
+                            : "border-line bg-soft"
+                        }`}>
+                          <div className={`font-display text-2xl mb-1 ${
+                            q.star_analysis.has_result ? "text-success" : "text-ink-faint"
+                          }`}>
+                            {q.star_analysis.has_result ? "✓" : "—"}
+                          </div>
+                          <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
+                            Result
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* STAR feedback narrative */}
+                      <div className="bg-frame border border-line p-4">
+                        <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
+                          AI feedback
+                        </div>
+                        <div className="font-display text-base italic text-ink leading-relaxed">
+                          "{q.star_analysis.star_feedback}"
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ===== Metric Row Component =====
+
+interface MetricRowProps {
+  label: string;
+  value: number;
+  color: string;
+}
+
+function MetricRow({ label, value, color }: MetricRowProps) {
+  return (
+    <div className="grid grid-cols-[180px_1fr_60px] gap-8 items-center py-4 border-b border-line">
+      <div className="font-display text-2xl">{label}</div>
+      <div className="h-2 bg-line relative">
+        <div
+          className={`absolute inset-y-0 left-0 ${color} transition-all duration-1000 ease-out`}
+          style={{ width: `${value}%` }}
+        />
+      </div>
+      <div className="text-right font-mono text-xl text-ink">{value}</div>
+    </div>
+  );
+}
+
+export default ResultsPage;

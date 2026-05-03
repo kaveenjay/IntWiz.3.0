@@ -208,6 +208,59 @@ export const saveReport = async (
   return response.data;
 };
 
+// ===== Get full report =====
+
+export interface QuestionResult {
+  question: string;
+  transcript: string;
+  detected_tone: string;
+  confidence_score: number;
+  engagement_score: number;
+  duration_seconds: number;
+  wpm: number;
+  filler_word_count: number;
+  fluency_score: number;
+  pacing_score: number;
+  pause_quality_score: number;
+  relevance_score: number;
+  technical_depth_score: number;
+  star_analysis: {
+    star_score: number;
+    star_feedback: string;
+    has_situation: boolean;
+    has_action: boolean;
+    has_result: boolean;
+  };
+  audio_url: string | null;
+}
+
+export interface FullReport {
+  report_id: string;
+  user_id: string;
+  timestamp: string;
+  overall_score: number;
+  dominant_emotion: string;
+  ai_summary: string;
+  question_count: number;
+  target_questions: number;
+  mode: string;
+  average_relevance: number;
+  average_fluency: number;
+  average_technical_depth: number;
+  average_pacing: number;
+  average_pause_quality: number;
+  average_star: number;
+  total_filler_words: number;
+  interview_results: QuestionResult[];
+  cv_text: string;
+  jd_text: string;
+}
+
+export const getReport = async (reportId: string): Promise<FullReport> => {
+  const response = await api.get<FullReport>(`/get-report/${reportId}`);
+  return response.data;
+};
+
 export const getUserReports = async (userId: string): Promise<UserReportsResponse> => {
   const response = await api.get<UserReportsResponse>(`/get-user-reports/${userId}`);
   return response.data;
