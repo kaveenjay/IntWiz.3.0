@@ -205,17 +205,19 @@ def calculate_fluency_metrics(transcript: str, duration_seconds: float) -> dict:
         "fluency_score": fluency_score
     }
 
-# Pause analysis thresholds — tunable without touching scoring logic
-IDEAL_PAUSE_MIN = 1.0       # seconds
+# Pause analysis thresholds — calibrated for interview Q&A speech patterns
+# Based on Goldman-Eisler (1968) with adjustments for conversational delivery
+IDEAL_PAUSE_MIN = 0.7        # seconds — meaningful thought pauses start here
 IDEAL_PAUSE_MAX = 2.0
 ACCEPTABLE_PAUSE_MIN = 0.5
-ACCEPTABLE_PAUSE_MAX = 2.5
-IDEAL_RATE_MIN = 3          # pauses per minute
-IDEAL_RATE_MAX = 5
+ACCEPTABLE_PAUSE_MAX = 3.0
+IDEAL_RATE_MIN = 3           # pauses per minute
+IDEAL_RATE_MAX = 7
 ACCEPTABLE_RATE_MIN = 2
-ACCEPTABLE_RATE_MAX = 6
-HESITATION_PAUSE_THRESHOLD = 3.0
-MIN_AUDIO_DURATION = 5.0    # seconds
+ACCEPTABLE_RATE_MAX = 10
+HESITATION_PAUSE_THRESHOLD = 4.0   # one big pause = hesitation
+MIN_AUDIO_DURATION = 5.0     # seconds
+MIN_PAUSE_DURATION = 0.5     # filter out breath/rhythm gaps
 
 def analyze_pause_patterns(file_path: str) -> dict:
     """
@@ -225,6 +227,15 @@ def analyze_pause_patterns(file_path: str) -> dict:
     improve listener comprehension. Confident speakers use 1-2s pauses
     between thoughts, while nervous speakers either rush (no pauses) or
     hesitate excessively (>3s pauses).
+
+    Methodology:
+    1. Trim leading/trailing silence (pre-answer thinking time and post-answer
+       silence are not part of delivery and should not be penalized)
+    2. Detect non-silent intervals using top_db=25 (excludes between-word
+       micro-gaps that are speech rhythm, not pauses)
+    3. Filter pauses shorter than 300ms (these are speech rhythm, not
+       meaningful thought/hesitation pauses)
+    4. Score remaining pauses against Goldman-Eisler thresholds
 
     Args:
         file_path: Path to a wav audio file
@@ -236,48 +247,72 @@ def analyze_pause_patterns(file_path: str) -> dict:
 
     try:
         y, sr = librosa.load(file_path, sr=None)
-        duration = len(y) / sr
+
+        # Step 1: Trim leading and trailing silence
+        # top_db=25 means "anything more than 25 dB below the peak is silence"
+        # This removes pre-answer thinking pauses and post-answer silence
+        y_trimmed, _ = librosa.effects.trim(y, top_db=25)
+
+        duration = len(y_trimmed) / sr
 
         if duration < MIN_AUDIO_DURATION:
             return default
 
-        # Detect non-silent intervals; gaps between them are pauses
-        non_silent = librosa.effects.split(y, top_db=30)
+        # Step 2: Detect non-silent intervals in the trimmed audio
+        # Tighter top_db threshold (25 vs 30) reduces false positives on
+        # micro-gaps between words
+        non_silent = librosa.effects.split(y_trimmed, top_db=25)
 
         if len(non_silent) < 2:
             return {**default, "pause_count": 0}
 
+        # Step 3: Extract gaps between speech segments (these are pauses)
+        # Filter to gaps >= 300ms — anything shorter is speech rhythm
         pause_durations = []
         for i in range(1, len(non_silent)):
             gap = (non_silent[i][0] - non_silent[i - 1][1]) / sr
-            if gap > 0.1:  # ignore imperceptibly short inter-frame gaps
+            if gap >= MIN_PAUSE_DURATION:  # filter speech-rhythm gaps; only count meaningful pauses
                 pause_durations.append(gap)
 
         pause_count = len(pause_durations)
         avg_duration = float(np.mean(pause_durations)) if pause_durations else 0.0
         pauses_per_minute = (pause_count / duration) * 60
 
-        # Score based on Goldman-Eisler thresholds
+        # Step 4: Score using rate-primary, duration-secondary logic
+        # Rate (pauses/min) determines the base score; duration provides modifier
         ideal_rate = IDEAL_RATE_MIN <= pauses_per_minute <= IDEAL_RATE_MAX
         ideal_duration = IDEAL_PAUSE_MIN <= avg_duration <= IDEAL_PAUSE_MAX
         acceptable_rate = ACCEPTABLE_RATE_MIN <= pauses_per_minute <= ACCEPTABLE_RATE_MAX
         acceptable_duration = ACCEPTABLE_PAUSE_MIN <= avg_duration <= ACCEPTABLE_PAUSE_MAX
         rushing = pauses_per_minute < ACCEPTABLE_RATE_MIN
-        hesitating = pauses_per_minute > ACCEPTABLE_RATE_MAX or avg_duration > HESITATION_PAUSE_THRESHOLD
+        hesitating = (pauses_per_minute > ACCEPTABLE_RATE_MAX
+                    or avg_duration > HESITATION_PAUSE_THRESHOLD)
 
-        if ideal_rate and ideal_duration:
-            score = 92
-        elif ideal_rate or ideal_duration:
-            score = 80
-        elif acceptable_rate and acceptable_duration:
-            score = 72
-        elif acceptable_rate or acceptable_duration:
-            score = 62
+        # Determine base score from rate (most important factor)
+        if ideal_rate:
+            base_score = 85   # Good base — strategic, composed pacing
+        elif acceptable_rate:
+            base_score = 65   # Decent pacing, room to improve
         elif rushing:
-            score = 50
+            base_score = 50   # Spoke too continuously, no thought breaks
         elif hesitating:
-            score = 35
+            base_score = 40   # Too many pauses or one excessively long pause
         else:
+            base_score = 50
+
+        # Modifier: duration adds up to 10 points if ideal, 5 if acceptable
+        if ideal_duration:
+            duration_bonus = 10
+        elif acceptable_duration:
+            duration_bonus = 5
+        else:
+            duration_bonus = 0
+
+        # Combine, cap at 95 (perfect 100 reserved for exceptional cases)
+        score = min(base_score + duration_bonus, 95)
+
+        # Special case: very short answers with no pauses can't be evaluated meaningfully
+        if pause_count == 0:
             score = 50
 
         return {
