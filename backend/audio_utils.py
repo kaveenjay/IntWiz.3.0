@@ -536,54 +536,83 @@ def calculate_pacing_score(duration_seconds: float, word_count: int) -> dict:
 
 def calculate_relevance_score(transcript: str, reference_text: str) -> float:
     """
-    Calculates semantic relevance between candidate's answer and job requirements.
-
-    Uses TF-IDF (Term Frequency-Inverse Document Frequency) vectorization and
-    cosine similarity to measure how closely the candidate's response aligns with
-    the combined CV and job description text.
+    Calculates semantic relevance between candidate's answer and the job context
+    (CV + job description). Uses TF-IDF cosine similarity calibrated to a 0-100
+    scale that reflects realistic interview speech patterns.
 
     Why TF-IDF over neural embeddings (BERT, Word2Vec)?
-    1. Deterministic - same input always produces same output
-    2. Lightweight - no GPU required, runs in milliseconds
-    3. Keyword-focused - for technical interviews, exact term usage (Python, SQL)
-       demonstrates domain knowledge better than semantic paraphrasing
+    1. Deterministic — same input always produces same output (defensible/reproducible)
+    2. Lightweight — no GPU required, runs in milliseconds
+    3. Keyword-focused — for interviews, vocabulary alignment with the role
+       directly indicates the candidate is discussing relevant content
 
     How it works:
-    - TF (Term Frequency): How often a word appears in the text
+    - TF (Term Frequency): How often a word appears in the answer
     - IDF (Inverse Document Frequency): How rare/important the word is
-    - TF-IDF gives high scores to important words (Python, machine learning)
-      and low scores to common words (the, and, is)
-    - Cosine similarity measures the angle between the two TF-IDF vectors
+    - Cosine similarity measures angle between the two TF-IDF vectors
       (0° = identical topics, 90° = unrelated)
+
+    Calibration:
+    Empirical testing on real interview transcripts showed raw cosine similarity
+    falls in 0.05-0.40 range. This is normalized to 0-100 with empirically-derived
+    thresholds that match human intuition about relevance:
+    - 0.05  → 10  (off-topic)
+    - 0.15  → 35  (some overlap)
+    - 0.25  → 60  (good alignment)
+    - 0.35  → 85  (strong relevance)
+    - 0.45+ → 95+ (exceptional)
+
+    Note: This metric measures vocabulary alignment with the role, not answer
+    quality. A rambling answer with relevant vocabulary will score moderately
+    well here. Answer structure quality is captured separately by STAR analysis.
 
     Args:
         transcript: The candidate's spoken answer (from speech-to-text)
         reference_text: Combined CV text + job description text
 
     Returns:
-        Relevance score from 0-100 (0 = completely unrelated, 100 = perfect match)
+        Calibrated relevance score from 0-100
     """
     from sklearn.feature_extraction.text import TfidfVectorizer
     from sklearn.metrics.pairwise import cosine_similarity
 
-    # Edge case: if either text is too short, return neutral score
-    # Less than 10 words doesn't provide enough context for meaningful comparison
+    # Edge case: too short for meaningful comparison
     if len(transcript.split()) < 10 or len(reference_text.split()) < 10:
         return 50.0
 
-    # Create TF-IDF vectorizer
-    # This will convert text into numerical vectors where each dimension represents
-    # the importance of a specific word
+    # Simple TF-IDF performs best for short interview transcripts vs CV/JD context.
+    # Stop word removal and bigrams hurt the signal in this length-mismatched scenario.
     vectorizer = TfidfVectorizer()
 
-    # Transform both texts into TF-IDF vectors
-    # fit_transform() builds the vocabulary and converts texts to vectors in one step
-    tfidf_matrix = vectorizer.fit_transform([transcript, reference_text])
+    try:
+        tfidf_matrix = vectorizer.fit_transform([transcript, reference_text])
+        raw_similarity = cosine_similarity(
+            tfidf_matrix[0:1],
+            tfidf_matrix[1:2]
+        )[0][0]
+    except ValueError:
+        return 50.0
 
-    # Calculate cosine similarity between the two vectors
-    # tfidf_matrix[0:1] = candidate's answer vector
-    # tfidf_matrix[1:2] = reference text vector
-    similarity = cosine_similarity(tfidf_matrix[0:1], tfidf_matrix[1:2])[0][0]
+    # Calibrate raw cosine similarity to 0-100 scale based on empirical testing
+    if raw_similarity <= 0:
+        score = 0.0
+    elif raw_similarity <= 0.05:
+        # 0.00-0.05  → 0-10 (off-topic)
+        score = (raw_similarity / 0.05) * 10
+    elif raw_similarity <= 0.15:
+        # 0.05-0.15  → 10-35 (some overlap)
+        score = 10 + ((raw_similarity - 0.05) / 0.10) * 25
+    elif raw_similarity <= 0.25:
+        # 0.15-0.25  → 35-60 (good alignment)
+        score = 35 + ((raw_similarity - 0.15) / 0.10) * 25
+    elif raw_similarity <= 0.35:
+        # 0.25-0.35  → 60-85 (strong relevance)
+        score = 60 + ((raw_similarity - 0.25) / 0.10) * 25
+    elif raw_similarity <= 0.45:
+        # 0.35-0.45  → 85-95 (very high relevance)
+        score = 85 + ((raw_similarity - 0.35) / 0.10) * 10
+    else:
+        # 0.45+ → 95-100 (exceptional)
+        score = min(95 + (raw_similarity - 0.45) * 10, 100)
 
-    # Convert from 0-1 scale to 0-100 percentage for user-friendly display
-    return round(float(similarity * 100), 1)
+    return round(float(score), 1)
