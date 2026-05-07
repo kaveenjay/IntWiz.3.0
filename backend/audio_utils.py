@@ -292,15 +292,24 @@ def analyze_pause_patterns(file_path: str) -> dict:
 
 def calculate_technical_depth(transcript: str, job_description: str, cv_text: str) -> dict:
     """
-    Measures technical expertise depth by counting domain-specific
-    terminology relative to total word count. Based on Maurer & Fay (1988)
-    research showing job-relevant language strongly predicts interview success.
-    Higher density indicates genuine expertise vs surface-level knowledge.
+    Measures technical/domain expertise depth using a weighted vocabulary
+    matching approach with two-pass LLM extraction.
+
+    Based on Maurer & Fay (1988): job-relevant language strongly predicts
+    interview success. Higher density of domain-specific terms (especially
+    those aligned with the role's CV/JD context) indicates genuine expertise.
+
+    Domain-agnostic: works for any field by extracting reference vocabulary
+    dynamically rather than relying on hardcoded term lists.
+
+    Two-pass LLM extraction:
+    1. Reference vocabulary from CV + JD (strongly weighted)
+    2. Domain terms identified in transcript (weakly weighted)
 
     Args:
         transcript: The candidate's spoken answer
-        job_description: Job description text used to identify relevant terms
-        cv_text: CV text used to identify relevant terms
+        job_description: Job description text
+        cv_text: CV text
 
     Returns:
         Dictionary with technical_terms_found, technical_term_count,
@@ -320,22 +329,31 @@ def calculate_technical_depth(transcript: str, job_description: str, cv_text: st
     if not job_description.strip() and not cv_text.strip():
         return default
 
+    cv_jd_terms = []
+    transcript_terms = []
+
     try:
         from groq import Groq
         groq_client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-        prompt = f"""Extract the most important technical terms, tools, frameworks, \
-and methodologies from the following job description and CV. \
-Return ONLY a Python list of strings, no explanation.
+        # ===== PASS 1: Extract reference vocabulary from CV + JD =====
+        cv_jd_prompt = f"""Extract the vocabulary that defines expertise in a specific field, \
+based on a job description and candidate's CV. The field could be ANY domain — technology, \
+marketing, finance, healthcare, education, design, engineering, science, etc.
 
-Focus on:
-- Programming languages
-- Frameworks and libraries
-- Methodologies (e.g., Agile, TDD)
-- Domain-specific concepts (e.g., regression, classification)
-- Tools and platforms (e.g., AWS, Docker)
+Extract:
+- Technical terms specific to this field
+- Tools, software, platforms, frameworks
+- Methodologies and processes
+- Domain concepts (theories, models, techniques)
+- Industry-specific jargon
 
-Aim for 15-25 most relevant terms.
+Be GENEROUS — include both terms explicitly mentioned and adjacent vocabulary an expert \
+in this field would naturally use. Aim for 30-50 terms.
+
+Include both single words AND multi-word phrases.
+
+Return ONLY a Python list of strings, no explanation, no markdown.
 
 JOB DESCRIPTION:
 {job_description}
@@ -343,58 +361,120 @@ JOB DESCRIPTION:
 CV:
 {cv_text}
 
-Return format: ["term1", "term2", "term3", ...]"""
+Return format: ["term1", "term2", "multi-word term", ...]"""
 
         response = groq_client.chat.completions.create(
             model="llama-3.3-70b-versatile",
-            messages=[{"role": "user", "content": prompt}],
+            messages=[{"role": "user", "content": cv_jd_prompt}],
             temperature=0.3,
-            max_tokens=256
+            max_tokens=512
         )
         raw = response.choices[0].message.content.strip()
-
-        # Parse the list — handle both JSON arrays and Python list literals
-        # Strip any markdown fences the model may have added
         clean = raw.replace("```json", "").replace("```python", "").replace("```", "").strip()
-        relevant_terms = json.loads(clean)
-        if not isinstance(relevant_terms, list):
-            return default
+        parsed = json.loads(clean)
+        if isinstance(parsed, list):
+            cv_jd_terms = parsed
+
+        # ===== PASS 2: Extract advanced domain terms from transcript =====
+        # Stricter prompt — looking for genuine expertise signals, not vocabulary
+        transcript_prompt = f"""You are evaluating an interview answer for evidence of \
+domain EXPERTISE — not just vocabulary, but specific advanced knowledge.
+
+Identify ONLY terms that demonstrate genuine expert-level knowledge:
+- Specialized technical concepts (e.g., "ARIMA", "homomorphic encryption", "DCF analysis")
+- Advanced methodologies (e.g., "feature engineering", "Monte Carlo simulation", "cohort analysis")
+- Specific tools/frameworks an expert would name (e.g., "statsmodels", "Tableau", "Salesforce")
+- Industry-specific advanced concepts (e.g., "customer lifetime value", "regulatory compliance")
+
+EXCLUDE:
+- Generic terms anyone might know ("data", "analysis", "project", "missing values")
+- Common words used technically but not specialized ("clean", "process", "test")
+- Casual mentions without context
+
+Return ONLY a Python list of strings demonstrating genuine expertise. \
+If the answer is generic or surface-level, return an empty list [].
+
+TRANSCRIPT:
+{transcript}
+
+Return format: ["term1", "term2", "multi-word term", ...]"""
+
+        response = groq_client.chat.completions.create(
+            model="llama-3.3-70b-versatile",
+            messages=[{"role": "user", "content": transcript_prompt}],
+            temperature=0.3,
+            max_tokens=512
+        )
+        raw = response.choices[0].message.content.strip()
+        clean = raw.replace("```json", "").replace("```python", "").replace("```", "").strip()
+        parsed = json.loads(clean)
+        if isinstance(parsed, list):
+            transcript_terms = parsed
 
     except Exception:
+        pass
+
+    if not cv_jd_terms and not transcript_terms:
         return default
 
-    # Whole-word, case-insensitive search for each extracted term
+    # Lowercase and deduplicate
+    cv_jd_set = {t.lower().strip() for t in cv_jd_terms if isinstance(t, str) and t.strip()}
+    transcript_set = {t.lower().strip() for t in transcript_terms if isinstance(t, str) and t.strip()}
+
+    # Combined set for matching
+    all_terms = cv_jd_set | transcript_set
+
+    # Match against transcript
     transcript_lower = transcript.lower()
     words = transcript.split()
     total_words = len(words)
 
     found_terms = []
-    for term in relevant_terms:
-        # re.escape handles multi-word terms and special chars (e.g. "C++", "Node.js")
-        pattern = r'\b' + re.escape(term.lower()) + r'\b'
+    cv_jd_match_count = 0    # Strongly weighted: aligned with role
+    transcript_only_count = 0  # Weakly weighted: tangential expertise
+
+    for term in all_terms:
+        pattern = r'\b' + re.escape(term) + r'\b'
         if re.search(pattern, transcript_lower):
             found_terms.append(term)
+            if term in cv_jd_set:
+                cv_jd_match_count += 1
+            else:
+                transcript_only_count += 1
 
-    term_count = len(found_terms)
+    # Weighted term count: CV/JD matches count fully, transcript-only at 50%
+    weighted_count = cv_jd_match_count + (transcript_only_count * 0.5)
 
-    # Normalize density to 0-100 using two linear segments:
-    # 0% → 0, 5% → 50, 10%+ → 100
+    # Calculate weighted density
     if total_words == 0:
         score = 0
     else:
-        density = (term_count / total_words) * 100
+        density = (weighted_count / total_words) * 100
+
+        # Tightened curve — harder to reach 100
+        # 0%   → 0
+        # 1.5% → 25  (some technical vocabulary)
+        # 3%   → 50  (moderately technical)
+        # 5%   → 75  (strongly technical)
+        # 8%+  → 100 (exceptional expertise)
         if density <= 0:
             score = 0
+        elif density <= 1.5:
+            score = round(density * (25 / 1.5))                    # 0 to 25
+        elif density <= 3:
+            score = round(25 + (density - 1.5) * (25 / 1.5))       # 25 to 50
         elif density <= 5:
-            score = round(density * 10)        # 0–5% maps to 0–50
+            score = round(50 + (density - 3) * (25 / 2))           # 50 to 75
+        elif density <= 8:
+            score = round(75 + (density - 5) * (25 / 3))           # 75 to 100
         else:
-            score = round(min(50 + (density - 5) * 10, 100))  # 5–10% maps to 50–100
+            score = 100
 
     return {
         "technical_terms_found": found_terms,
-        "technical_term_count": term_count,
+        "technical_term_count": len(found_terms),
         "technical_depth_score": score,
-        "relevant_terms_extracted": relevant_terms
+        "relevant_terms_extracted": cv_jd_terms  # Show CV/JD terms for explainability
     }
 
 
