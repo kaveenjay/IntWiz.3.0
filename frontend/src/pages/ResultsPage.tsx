@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { getReport } from "../services/api";
 import type { FullReport } from "../services/api";
+import generateReportPDF from "../utils/generateReportPDF";
 
 function ResultsPage() {
   const { reportId } = useParams<{ reportId: string }>();
@@ -138,6 +139,7 @@ function ResultsPage() {
           ← Back to Dashboard
         </Link>
         <button
+          onClick={() => generateReportPDF(report)}
           className="bg-ink text-page px-5 py-2.5 font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-2"
         >
           <span className="font-display italic text-base">↓</span>
