@@ -92,7 +92,7 @@ function LoginPage() {
           </div>
 
           {/* Password field */}
-          <div className="mb-5">
+          <div className="mb-2">
             <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
               Password
             </label>
@@ -105,6 +105,16 @@ function LoginPage() {
               required
               disabled={loading}
             />
+          </div>
+
+          {/* Forgot password */}
+          <div className="mb-5 text-right">
+            <Link
+              to="/forgot-password"
+              className="font-mono text-[11px] uppercase tracking-widest text-ink-soft hover:text-ink"
+            >
+              Forgot password?
+            </Link>
           </div>
 
           {/* Error message */}
