@@ -5,83 +5,8 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import DashboardPage from "./pages/DashboardPage";
 import SetupPage from "./pages/SetupPage";
-import RecorderTestPage from "./pages/RecorderTestPage";
 import InterviewRoomPage from "./pages/InterviewRoomPage";
 import ResultsPage from "./pages/ResultsPage";
-
-function LoginPlaceholder() {
-  const { login, register, user, logout } = useAuth();
-
-  const handleTestLogin = async () => {
-    try {
-      await login("test@intwiz.com", "test123456");
-    } catch (error: any) {
-      if (
-        error.code === "auth/user-not-found" ||
-        error.code === "auth/invalid-credential"
-      ) {
-        await register("test@intwiz.com", "test123456");
-      } else {
-        console.error("Login error:", error);
-      }
-    }
-  };
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-page">
-      <div className="text-center">
-        <h1 className="font-display text-7xl text-ink mb-4">
-          Int<em className="text-accent italic">Wiz</em>
-        </h1>
-        <p className="font-mono text-sm text-ink-soft uppercase tracking-widest mb-8">
-          — Login Page Placeholder
-        </p>
-
-        {user ? (
-          <div>
-            <p className="text-ink mb-4">Logged in as: {user.email}</p>
-            <button
-              onClick={logout}
-              className="px-6 py-3 bg-ink text-page font-mono text-xs uppercase tracking-widest"
-            >
-              Logout
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={handleTestLogin}
-            className="px-6 py-3 bg-accent text-page font-mono text-xs uppercase tracking-widest"
-          >
-            Test Login (creates test account)
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function DashboardPlaceholder() {
-  const { user, logout } = useAuth();
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-page">
-      <div className="text-center">
-        <h1 className="font-display text-5xl text-ink mb-4">
-          Dashboard <em className="text-accent italic">Placeholder</em>
-        </h1>
-        <p className="font-mono text-sm text-ink-soft uppercase tracking-widest mb-2">
-          — Protected Route Working ✓
-        </p>
-        <p className="text-ink-soft text-sm mb-8">User: {user?.email}</p>
-        <button
-          onClick={logout}
-          className="px-6 py-3 bg-ink text-page font-mono text-xs uppercase tracking-widest"
-        >
-          Logout
-        </button>
-      </div>
-    </div>
-  );
-}
 
 function App() {
   return (
@@ -112,19 +37,53 @@ function App() {
           </ProtectedRoute>
         } 
       />
-      <Route 
-        path="/test-recorder" 
-        element={
-          <ProtectedRoute>
-            <RecorderTestPage />
-          </ProtectedRoute>
-        } 
-      />
       <Route
         path="/results/:reportId"
         element={
           <ProtectedRoute>
             <ResultsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <div className="min-h-screen flex items-center justify-center bg-frame">
+              <div className="text-center">
+                <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">— Coming soon</div>
+                <div className="font-display text-5xl">Profile <em className="italic text-accent">page</em></div>
+                <div className="text-ink-soft mt-4">This page will be built next.</div>
+              </div>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <ProtectedRoute>
+            <div className="min-h-screen flex items-center justify-center bg-frame">
+              <div className="text-center">
+                <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">— Coming soon</div>
+                <div className="font-display text-5xl">Settings <em className="italic text-accent">page</em></div>
+                <div className="text-ink-soft mt-4">This page will be built next.</div>
+              </div>
+            </div>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/help"
+        element={
+          <ProtectedRoute>
+            <div className="min-h-screen flex items-center justify-center bg-frame">
+              <div className="text-center">
+                <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">— Coming soon</div>
+                <div className="font-display text-5xl">Help <em className="italic text-accent">page</em></div>
+                <div className="text-ink-soft mt-4">This page will be built next.</div>
+              </div>
+            </div>
           </ProtectedRoute>
         }
       />
