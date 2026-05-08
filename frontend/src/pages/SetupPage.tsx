@@ -1,6 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { generateQuestions } from "../services/api";
+import TopNav from "../components/TopNav";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -151,15 +152,7 @@ function SetupPage() {
   return (
     <div className="min-h-screen bg-frame">
 
-      {/* TOP BAR */}
-      <div className="sticky top-0 bg-frame border-b border-line px-12 py-6 z-10">
-        <a
-          href="/dashboard"
-          className="font-mono text-xs uppercase tracking-widest text-ink-soft hover:text-ink"
-        >
-          ← Back to Dashboard
-        </a>
-      </div>
+      <TopNav />
 
       {/* MAIN CONTENT */}
       <div className="max-w-2xl mx-auto px-12 py-16">

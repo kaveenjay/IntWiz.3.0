@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 
 function LoginPage() {
@@ -127,9 +127,9 @@ function LoginPage() {
         {/* Footer link */}
         <div className="mt-8 text-center text-sm text-ink-soft">
           New to IntWiz?{" "}
-          <a href="/register" className="text-accent border-b border-accent">
+          <Link to="/register" className="text-accent border-b border-accent">
             Create an account
-          </a>
+          </Link>
         </div>
       </div>
     </div>

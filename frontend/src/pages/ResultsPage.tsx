@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import TopNav from "../components/TopNav";
 import { getReport } from "../services/api";
 import type { FullReport } from "../services/api";
 import generateReportPDF from "../utils/generateReportPDF";
@@ -130,14 +131,10 @@ function ResultsPage() {
   return (
     <div className="min-h-screen bg-frame">
 
-      {/* TOP BAR */}
-      <div className="sticky top-0 bg-frame border-b border-line px-12 py-5 flex justify-between items-center z-10">
-        <Link
-          to="/dashboard"
-          className="font-mono text-xs uppercase tracking-widest text-ink-soft hover:text-ink"
-        >
-          ← Back to Dashboard
-        </Link>
+      <TopNav />
+
+      {/* ACTION BAR */}
+      <div className="border-b border-line px-12 py-4 flex justify-end items-center">
         <button
           onClick={() => generateReportPDF(report)}
           className="bg-ink text-page px-5 py-2.5 font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-2"
