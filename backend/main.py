@@ -22,7 +22,7 @@ from audio_utils import (
 from storage_utils import upload_audio_to_storage
 from firebase_config import db
 from firebase_admin import firestore
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Load environment variables
 load_dotenv()
@@ -755,3 +755,87 @@ async def get_user_reports(user_id: str, limit: int = 20):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error fetching user reports: {e}")
+
+
+# ---------------------------------------------------------------------------
+# User preferences
+# ---------------------------------------------------------------------------
+
+DEFAULT_PREFERENCES = {
+    "defaultMode": "adaptive",
+    "defaultTargetQuestions": 7,
+    "defaultSaveAudio": False,
+}
+
+
+@app.get("/get-preferences/{user_id}")
+async def get_preferences(user_id: str):
+    """
+    Fetches a user's saved interview preferences from Firestore.
+    Returns defaults if no preferences exist yet.
+    """
+    try:
+        doc_ref = db.collection("users").document(user_id)
+        doc = doc_ref.get()
+
+        if not doc.exists:
+            return {
+                "user_id": user_id,
+                "preferences": DEFAULT_PREFERENCES,
+                "is_default": True,
+            }
+
+        data = doc.to_dict()
+        prefs = data.get("preferences", DEFAULT_PREFERENCES)
+
+        # Merge with defaults to handle partial preferences
+        merged = {**DEFAULT_PREFERENCES, **prefs}
+
+        return {
+            "user_id": user_id,
+            "preferences": merged,
+            "is_default": False,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch preferences: {e}")
+
+
+@app.post("/save-preferences/")
+async def save_preferences(
+    user_id: str = Form(...),
+    default_mode: str = Form(...),
+    default_target_questions: int = Form(...),
+    default_save_audio: bool = Form(...),
+):
+    """
+    Saves a user's interview preferences to Firestore.
+    Uses set with merge=True so other user fields are preserved.
+    """
+    if default_mode not in ["adaptive", "fixed"]:
+        raise HTTPException(status_code=400, detail="Invalid mode")
+
+    if default_target_questions not in [5, 7, 10]:
+        raise HTTPException(status_code=400, detail="Invalid question count")
+
+    try:
+        preferences = {
+            "defaultMode": default_mode,
+            "defaultTargetQuestions": default_target_questions,
+            "defaultSaveAudio": default_save_audio,
+        }
+
+        doc_ref = db.collection("users").document(user_id)
+        doc_ref.set({
+            "preferences": preferences,
+            "updated_at": datetime.now(timezone.utc),
+        }, merge=True)
+
+        return {
+            "user_id": user_id,
+            "status": "success",
+            "preferences": preferences,
+        }
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to save preferences: {e}")

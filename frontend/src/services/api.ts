@@ -266,4 +266,37 @@ export const getUserReports = async (userId: string): Promise<UserReportsRespons
   return response.data;
 };
 
+// ===== User preferences =====
+
+export interface UserPreferences {
+  defaultMode: "adaptive" | "fixed";
+  defaultTargetQuestions: number;
+  defaultSaveAudio: boolean;
+}
+
+export interface PreferencesResponse {
+  user_id: string;
+  preferences: UserPreferences;
+  is_default: boolean;
+}
+
+export const getPreferences = async (userId: string): Promise<PreferencesResponse> => {
+  const response = await api.get<PreferencesResponse>(`/get-preferences/${userId}`);
+  return response.data;
+};
+
+export const savePreferences = async (
+  userId: string,
+  preferences: UserPreferences
+): Promise<{ user_id: string; status: string; preferences: UserPreferences }> => {
+  const formData = new FormData();
+  formData.append("user_id", userId);
+  formData.append("default_mode", preferences.defaultMode);
+  formData.append("default_target_questions", preferences.defaultTargetQuestions.toString());
+  formData.append("default_save_audio", preferences.defaultSaveAudio.toString());
+
+  const response = await api.post("/save-preferences/", formData);
+  return response.data;
+};
+
 export default api;

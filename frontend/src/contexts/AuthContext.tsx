@@ -6,6 +6,9 @@ import {
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  updatePassword as firebaseUpdatePassword,
 } from "firebase/auth";
 import type { User } from "firebase/auth";
 import { auth } from "../services/firebase";
@@ -41,8 +44,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await sendPasswordResetEmail(auth, email);
   };
 
+  const updatePassword = async (currentPassword: string, newPassword: string): Promise<void> => {
+    if (!auth.currentUser || !auth.currentUser.email) {
+      throw new Error("No user is signed in");
+    }
+    const credential = EmailAuthProvider.credential(auth.currentUser.email, currentPassword);
+    await reauthenticateWithCredential(auth.currentUser, credential);
+    await firebaseUpdatePassword(auth.currentUser, newPassword);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, resetPassword }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, resetPassword, updatePassword }}>
       {children}
     </AuthContext.Provider>
   );

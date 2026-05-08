@@ -1,7 +1,8 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { generateQuestions } from "../services/api";
+import { generateQuestions, getPreferences } from "../services/api";
 import TopNav from "../components/TopNav";
+import { useAuth } from "../contexts/AuthContext";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10 MB
 
@@ -11,6 +12,7 @@ function formatFileSize(bytes: number): string {
 
 function SetupPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [jdInputType,     setJdInputType]     = useState<"pdf" | "text">("text");
   const [jdText,          setJdText]          = useState("");
@@ -27,6 +29,25 @@ function SetupPage() {
 
   const cvInputRef = useRef<HTMLInputElement>(null);
   const jdInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!user?.uid) return;
+
+    const loadPrefs = async () => {
+      try {
+        const response = await getPreferences(user.uid);
+        const prefs = response.preferences;
+        setMode(prefs.defaultMode);
+        setTargetQuestions(prefs.defaultTargetQuestions);
+        setSaveAudio(prefs.defaultSaveAudio);
+      } catch (err) {
+        // Preferences failing to load is non-critical — keep the form defaults
+        console.error("Failed to load preferences:", err);
+      }
+    };
+
+    loadPrefs();
+  }, [user?.uid]);
 
   // ── File validation ────────────────────────────────────────────────────────
 

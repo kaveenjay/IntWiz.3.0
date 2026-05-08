@@ -5,6 +5,7 @@ import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 import DashboardPage from "./pages/DashboardPage";
 import SetupPage from "./pages/SetupPage";
 import InterviewRoomPage from "./pages/InterviewRoomPage";
@@ -60,13 +61,7 @@ function App() {
         path="/settings"
         element={
           <ProtectedRoute>
-            <div className="min-h-screen flex items-center justify-center bg-frame">
-              <div className="text-center">
-                <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">— Coming soon</div>
-                <div className="font-display text-5xl">Settings <em className="italic text-accent">page</em></div>
-                <div className="text-ink-soft mt-4">This page will be built next.</div>
-              </div>
-            </div>
+            <SettingsPage />
           </ProtectedRoute>
         }
       />
