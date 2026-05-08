@@ -3,6 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { getUserReports } from "../services/api";
 import type { InterviewSummary } from "../services/api";
 import { useNavigate } from "react-router-dom";
+import TopNav from "../components/TopNav";
 
 function formatTimestamp(iso: string): string {
   const d = new Date(iso);
@@ -17,15 +18,6 @@ function formatTodayDate(): string {
     day: "numeric",
     month: "long",
   });
-}
-
-function userInitials(email: string): string {
-  const name  = email.split("@")[0];
-  const parts = name.split(/[._-]/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return name.slice(0, 2).toUpperCase();
 }
 
 function DashboardPage() {
@@ -54,24 +46,9 @@ function DashboardPage() {
   }, [user?.uid]);
 
   const displayName = user?.email ? user.email.split("@")[0] : "there";
-  const initials    = user?.email ? userInitials(user.email) : "?";
 
   // Shared nav — identical across all states
-  const topNav = (
-    <nav className="border-b border-line px-12 py-5 flex justify-between items-center">
-      <div className="font-display text-2xl">
-        Int<em className="italic text-accent">Wiz</em>
-      </div>
-      <div className="flex gap-8 items-center text-sm text-ink-soft">
-        <span>Dashboard</span>
-        <span>History</span>
-        <span>Help</span>
-        <div className="w-9 h-9 rounded-full bg-accent text-page flex items-center justify-center font-medium text-sm">
-          {initials}
-        </div>
-      </div>
-    </nav>
-  );
+  const topNav = <TopNav />;
 
   // ── STATE 1: LOADING ──────────────────────────────────────────────────────
   if (loading) {
@@ -217,6 +194,9 @@ function DashboardPage() {
         {greetingRow}
         {statsGrid}
 
+        {/* PAST INTERVIEWS — scroll target for History nav link */}
+        <div id="past-interviews" className="scroll-mt-20">
+
         {/* SECTION HEADER */}
         <div className="grid grid-cols-[auto_1fr_auto] gap-6 items-center mb-8">
           <h2 className="font-display text-4xl">
@@ -270,6 +250,7 @@ function DashboardPage() {
             </div>
           ))}
         </div>
+        </div>{/* end #past-interviews */}
       </div>
     </div>
   );
