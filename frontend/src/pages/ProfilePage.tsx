@@ -157,27 +157,27 @@ function ProfilePage() {
     <div className="min-h-screen bg-frame">
       <TopNav />
 
-      <div className="max-w-4xl mx-auto px-12 py-14">
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
           — Your account
         </div>
-        <h1 className="font-display text-6xl leading-none mb-4">
+        <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           Hello, <em className="italic text-accent">{user?.email?.split("@")[0]}</em>
         </h1>
-        <p className="text-ink-soft text-base mb-14">
+        <p className="text-ink-soft text-sm sm:text-base mb-10 sm:mb-14">
           A snapshot of your interview practice journey so far.
         </p>
 
         {/* ACCOUNT INFO */}
         <div className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-8">
-            <h2 className="font-display text-3xl">Account</h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Account</h2>
             <div className="h-px bg-line-strong" />
           </div>
 
-          <div className="grid grid-cols-2 gap-px bg-line border border-line">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line border border-line">
             <div className="bg-frame p-6">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
                 Email address
@@ -201,13 +201,13 @@ function ProfilePage() {
         {/* LIFETIME STATS */}
         <div className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-8">
-            <h2 className="font-display text-3xl">
+            <h2 className="font-display text-2xl sm:text-3xl">
               Lifetime <em className="italic">stats</em>
             </h2>
             <div className="h-px bg-line-strong" />
           </div>
 
-          <div className="grid grid-cols-4 gap-px bg-line border border-line">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-px bg-line border border-line">
             <div className="bg-frame p-6">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-3">
                 Total Interviews
@@ -253,11 +253,11 @@ function ProfilePage() {
         {/* ACHIEVEMENTS */}
         <div className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-8">
-            <h2 className="font-display text-3xl">Milestones</h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Milestones</h2>
             <div className="h-px bg-line-strong" />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {achievements.map((achievement, idx) => (
               <div
                 key={idx}
@@ -301,7 +301,7 @@ function ProfilePage() {
         <div className="text-center mt-20">
           <button
             onClick={() => navigate("/interview/setup")}
-            className="bg-ink text-page px-10 py-5 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-3 mx-auto"
+            className="bg-ink text-page px-6 sm:px-10 py-4 sm:py-5 font-mono text-sm sm:text-base uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-3 mx-auto"
           >
             Start New Interview
             <span className="font-display italic text-2xl">→</span>

@@ -268,24 +268,24 @@ function InterviewRoomPage() {
 
   // ===== Main UI =====
   return (
-    <div className="h-screen overflow-hidden bg-frame grid grid-cols-[360px_1fr]">
+    <div className="h-screen overflow-hidden bg-frame flex flex-col lg:grid lg:grid-cols-[360px_1fr]">
 
       {/* ===== LEFT SIDEBAR ===== */}
-      <aside className="bg-soft border-r border-line p-8 flex flex-col h-screen overflow-y-auto">
+      <aside className="bg-soft border-t lg:border-t-0 lg:border-r border-line p-4 lg:p-8 flex flex-col order-2 lg:order-1 lg:h-screen overflow-y-auto">
 
         {/* Eyebrow */}
-        <div className="font-mono text-[10px] uppercase tracking-widest text-ink-faint mb-3">
+        <div className="hidden lg:block font-mono text-[10px] uppercase tracking-widest text-ink-faint mb-3">
           — In progress
         </div>
 
         {/* Question count */}
-        <div className="font-display text-5xl leading-none mb-1">
+        <div className="hidden lg:block font-display text-5xl leading-none mb-1">
           {String(questionNumber).padStart(2, "0")}
           <em className="italic text-accent text-3xl"> of {config.mode === "fixed" ? config.targetQuestions : "~8"}</em>
         </div>
 
         {/* Progress label */}
-        <div className="flex justify-between items-center mt-8 mb-2">
+        <div className="hidden lg:flex justify-between items-center mt-8 mb-2">
           <span className="font-mono text-[10px] uppercase tracking-widest text-ink-soft">
             Progress
           </span>
@@ -295,7 +295,7 @@ function InterviewRoomPage() {
         </div>
 
         {/* Progress bar */}
-        <div className="h-1 bg-line relative mb-8">
+        <div className="hidden lg:block h-1 bg-line relative mb-8">
           <div
             className="absolute inset-y-0 left-0 bg-accent transition-all duration-500"
             style={{ width: `${progressPercent}%` }}
@@ -303,7 +303,7 @@ function InterviewRoomPage() {
         </div>
 
         {/* Mode indicator */}
-        <div className="border-t border-line pt-6 mb-auto">
+        <div className="hidden lg:block border-t border-line pt-6 mb-auto">
           <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
             — Mode
           </div>
@@ -318,7 +318,7 @@ function InterviewRoomPage() {
 
         {/* Audio storage indicator */}
         {config.saveAudio && (
-          <div className="border-t border-line pt-6 mb-6">
+          <div className="hidden lg:block border-t border-line pt-6 mb-6">
             <div className={`font-mono text-[10px] uppercase tracking-widest flex items-center gap-2 ${
               isRecording ? "text-warn" : "text-ink-faint"
             }`}>
@@ -337,14 +337,14 @@ function InterviewRoomPage() {
         <div className="border border-line-strong">
           {isRecording ? (
             /* Recording state */
-            <div className="p-6 text-center">
+            <div className="p-4 lg:p-6 text-center">
               <div className="flex items-center justify-center gap-2 mb-3">
                 <span className="w-2 h-2 bg-warn rounded-full animate-pulse"></span>
                 <span className="font-mono text-[10px] uppercase tracking-widest text-warn">
                   Recording
                 </span>
               </div>
-              <div className="font-display text-4xl mb-4">
+              <div className="font-display text-3xl lg:text-4xl mb-4">
                 {formatDuration(duration)}
               </div>
               <button
@@ -356,7 +356,7 @@ function InterviewRoomPage() {
             </div>
           ) : phase === "analyzing" ? (
             /* Analyzing state */
-            <div className="p-6 text-center">
+            <div className="p-4 lg:p-6 text-center">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-3">
                 — Analyzing your answer
               </div>
@@ -368,7 +368,7 @@ function InterviewRoomPage() {
             </div>
           ) : phase === "fetching-next" ? (
             /* Fetching next question */
-            <div className="p-6 text-center">
+            <div className="p-4 lg:p-6 text-center">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-3">
                 — Preparing next question
               </div>
@@ -380,7 +380,7 @@ function InterviewRoomPage() {
             </div>
           ) : phase === "saving-report" ? (
             /* Saving report */
-            <div className="p-6 text-center">
+            <div className="p-4 lg:p-6 text-center">
               <div className="font-mono text-[10px] uppercase tracking-widest text-accent mb-3 flex items-center justify-center gap-2">
                 <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"></span>
                 Wrapping up
@@ -396,7 +396,7 @@ function InterviewRoomPage() {
             </div>
           ) : phase === "error" ? (
             /* Error state */
-            <div className="p-6 text-center">
+            <div className="p-4 lg:p-6 text-center">
               <div className="font-mono text-[10px] uppercase tracking-widest text-warn mb-3">
                 — Something went wrong
               </div>
@@ -415,7 +415,7 @@ function InterviewRoomPage() {
             </div>
           ) : (
             /* Idle / ready state (default) */
-            <div className="p-6 text-center">
+            <div className="p-4 lg:p-6 text-center">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-4">
                 — Ready to answer
               </div>
@@ -436,34 +436,35 @@ function InterviewRoomPage() {
       </aside>
 
       {/* ===== RIGHT MAIN AREA ===== */}
-      <main className="flex flex-col h-screen overflow-hidden">
+      <main className="flex flex-col flex-1 min-h-0 order-1 lg:order-2 overflow-hidden lg:h-screen">
 
         {/* Top bar with End Interview button */}
-        <div className="border-b border-line px-12 py-5 flex justify-between items-center">
-          <h2 className="font-display text-2xl">
+        <div className="border-b border-line px-4 sm:px-8 lg:px-12 py-3 sm:py-4 lg:py-5 flex justify-between items-center">
+          <h2 className="font-display text-lg sm:text-2xl">
             Question <em className="italic text-accent">{numberToWord(questionNumber)}</em>
           </h2>
           <button
             onClick={handleEndInterview}
             disabled={isBusy}
-            className="border border-warn text-warn px-5 py-2.5 font-mono text-[11px] uppercase tracking-widest hover:bg-warn hover:text-page transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="border border-warn text-warn px-3 sm:px-5 py-2 sm:py-2.5 font-mono text-[11px] uppercase tracking-widest hover:bg-warn hover:text-page transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            End Interview Now
+            <span className="hidden sm:inline">End Interview Now</span>
+            <span className="sm:hidden">End</span>
           </button>
         </div>
 
         {/* Chat conversation area */}
-        <div className="flex-1 overflow-y-auto px-12 py-10 space-y-6">
+        <div className="flex-1 overflow-y-auto px-4 sm:px-8 lg:px-12 py-5 sm:py-8 lg:py-10 space-y-6">
 
           {/* Previous Q&A messages */}
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`flex gap-4 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
+              className={`flex gap-3 sm:gap-4 ${msg.role === "user" ? "flex-row-reverse" : ""}`}
             >
               {/* Avatar circle */}
               <div
-                className={`w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center font-display italic text-lg ${
+                className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full flex-shrink-0 flex items-center justify-center font-display italic text-lg ${
                   msg.role === "ai"
                     ? "bg-accent text-page"
                     : "bg-tint text-ink"
@@ -474,7 +475,7 @@ function InterviewRoomPage() {
 
               {/* Message bubble */}
               <div
-                className={`max-w-2xl px-5 py-4 rounded text-base leading-relaxed ${
+                className={`max-w-[90%] lg:max-w-2xl px-4 sm:px-5 py-3 sm:py-4 rounded text-sm sm:text-base leading-relaxed ${
                   msg.role === "ai"
                     ? "bg-accent-bg border-l-2 border-accent"
                     : "bg-soft border-r-2 border-ink"
@@ -487,11 +488,11 @@ function InterviewRoomPage() {
 
           {/* Current question (highlighted) — only shown when there's a question to answer */}
           {currentQuestion && (
-            <div className="flex gap-4 pt-4">
-              <div className="w-10 h-10 rounded-full bg-accent text-page flex-shrink-0 flex items-center justify-center font-display italic text-lg">
+            <div className="flex gap-3 sm:gap-4 pt-4">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent text-page flex-shrink-0 flex items-center justify-center font-display italic text-lg">
                 A
               </div>
-              <div className="max-w-2xl px-5 py-4 bg-frame border-2 border-accent rounded shadow-lg">
+              <div className="max-w-[90%] lg:max-w-2xl px-4 sm:px-5 py-3 sm:py-4 bg-frame border-2 border-accent rounded shadow-lg">
                 <div className="font-mono text-[10px] uppercase tracking-widest text-accent mb-2 font-semibold">
                   — Current question
                 </div>

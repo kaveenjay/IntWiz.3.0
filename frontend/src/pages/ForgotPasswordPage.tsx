@@ -33,10 +33,10 @@ function ForgotPasswordPage() {
   };
 
   return (
-    <div className="min-h-screen grid grid-cols-2 bg-frame">
+    <div className="min-h-screen lg:grid lg:grid-cols-2 bg-frame">
 
       {/* LEFT SIDE — Editorial Quote Panel */}
-      <aside className="bg-accent text-page p-12 flex flex-col justify-between relative overflow-hidden">
+      <aside className="hidden lg:flex bg-accent text-page p-12 flex-col justify-between relative overflow-hidden">
         <div className="font-display text-4xl">
           Int<em className="italic text-gold">Wiz</em>
         </div>
@@ -51,13 +51,13 @@ function ForgotPasswordPage() {
       </aside>
 
       {/* RIGHT SIDE — Reset Form */}
-      <div className="flex flex-col justify-center px-16 max-w-lg mx-auto w-full">
+      <div className="flex flex-col justify-center px-6 sm:px-12 lg:px-16 py-12 lg:py-0 max-w-lg mx-auto w-full">
 
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
           — Account recovery
         </div>
 
-        <h2 className="font-display text-5xl mb-2">
+        <h2 className="font-display text-4xl sm:text-5xl mb-2">
           Reset <em className="italic text-accent">password</em>
         </h2>
 

@@ -8,23 +8,23 @@ function HelpPage() {
     <div className="min-h-screen bg-frame">
       <TopNav />
 
-      <div className="max-w-3xl mx-auto px-12 py-14">
+      <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
           — Reference
         </div>
-        <h1 className="font-display text-6xl leading-none mb-4">
+        <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           <em className="italic text-accent">Help</em> & guide
         </h1>
-        <p className="text-ink-soft text-base mb-14">
+        <p className="text-ink-soft text-sm sm:text-base mb-10 sm:mb-14">
           Everything you need to make the most of IntWiz.
         </p>
 
         {/* SECTION: WHAT IS INTWIZ */}
         <section className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-6">
-            <h2 className="font-display text-3xl">What is <em className="italic">IntWiz</em>?</h2>
+            <h2 className="font-display text-2xl sm:text-3xl">What is <em className="italic">IntWiz</em>?</h2>
             <div className="h-px bg-line-strong" />
           </div>
           <p className="text-ink leading-relaxed mb-4">
@@ -45,12 +45,12 @@ function HelpPage() {
         {/* SECTION: HOW TO USE */}
         <section className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-6">
-            <h2 className="font-display text-3xl">Getting <em className="italic">started</em></h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Getting <em className="italic">started</em></h2>
             <div className="h-px bg-line-strong" />
           </div>
 
           <div className="space-y-6">
-            <div className="grid grid-cols-[auto_1fr] gap-6">
+            <div className="grid grid-cols-[auto_1fr] gap-4 sm:gap-6">
               <div className="font-display text-3xl italic text-accent leading-none w-8">i</div>
               <div>
                 <h3 className="font-display text-xl mb-2">Upload your CV</h3>
@@ -61,7 +61,7 @@ function HelpPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-6">
+            <div className="grid grid-cols-[auto_1fr] gap-4 sm:gap-6">
               <div className="font-display text-3xl italic text-accent leading-none w-8">ii</div>
               <div>
                 <h3 className="font-display text-xl mb-2">Add the job description</h3>
@@ -72,7 +72,7 @@ function HelpPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-6">
+            <div className="grid grid-cols-[auto_1fr] gap-4 sm:gap-6">
               <div className="font-display text-3xl italic text-accent leading-none w-8">iii</div>
               <div>
                 <h3 className="font-display text-xl mb-2">Choose your mode</h3>
@@ -84,7 +84,7 @@ function HelpPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-6">
+            <div className="grid grid-cols-[auto_1fr] gap-4 sm:gap-6">
               <div className="font-display text-3xl italic text-accent leading-none w-8">iv</div>
               <div>
                 <h3 className="font-display text-xl mb-2">Record your answers</h3>
@@ -96,7 +96,7 @@ function HelpPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[auto_1fr] gap-6">
+            <div className="grid grid-cols-[auto_1fr] gap-4 sm:gap-6">
               <div className="font-display text-3xl italic text-accent leading-none w-8">v</div>
               <div>
                 <h3 className="font-display text-xl mb-2">Review your results</h3>
@@ -113,7 +113,7 @@ function HelpPage() {
         {/* SECTION: UNDERSTANDING SCORES */}
         <section className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-6">
-            <h2 className="font-display text-3xl">
+            <h2 className="font-display text-2xl sm:text-3xl">
               Understanding your <em className="italic">scores</em>
             </h2>
             <div className="h-px bg-line-strong" />
@@ -201,7 +201,7 @@ function HelpPage() {
         {/* SECTION: FAQ */}
         <section className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-6">
-            <h2 className="font-display text-3xl">
+            <h2 className="font-display text-2xl sm:text-3xl">
               Frequently asked <em className="italic">questions</em>
             </h2>
             <div className="h-px bg-line-strong" />
@@ -280,7 +280,7 @@ function HelpPage() {
         {/* SECTION: PRIVACY & DATA */}
         <section className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-6">
-            <h2 className="font-display text-3xl">Privacy & <em className="italic">data</em></h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Privacy & <em className="italic">data</em></h2>
             <div className="h-px bg-line-strong" />
           </div>
 
@@ -319,11 +319,11 @@ function HelpPage() {
         {/* SECTION: CONTACT */}
         <section className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-6">
-            <h2 className="font-display text-3xl">Contact</h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Contact</h2>
             <div className="h-px bg-line-strong" />
           </div>
 
-          <div className="grid grid-cols-2 gap-px bg-line border border-line">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line border border-line">
             <div className="bg-frame p-6">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
                 Project author
@@ -351,7 +351,7 @@ function HelpPage() {
           <p className="text-ink-soft mb-6">Ready to start practicing?</p>
           <button
             onClick={() => navigate("/interview/setup")}
-            className="bg-ink text-page px-10 py-5 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-3 mx-auto"
+            className="bg-ink text-page px-6 sm:px-10 py-4 sm:py-5 font-mono text-sm sm:text-base uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-3 mx-auto"
           >
             Start New Interview
             <span className="font-display italic text-2xl">→</span>

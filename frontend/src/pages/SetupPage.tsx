@@ -176,16 +176,16 @@ function SetupPage() {
       <TopNav />
 
       {/* MAIN CONTENT */}
-      <div className="max-w-2xl mx-auto px-12 py-16">
+      <div className="max-w-2xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-16">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
           — New session
         </div>
-        <h1 className="font-display text-6xl leading-none mb-4">
+        <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           Set up your <em className="italic text-accent">interview</em>
         </h1>
-        <p className="text-ink-soft mb-14 text-base max-w-md">
+        <p className="text-ink-soft mb-10 sm:mb-14 text-sm sm:text-base max-w-md">
           Upload your CV, describe the role, and choose how the AI should pace your practice. Takes about a minute.
         </p>
         {uploadError && (
@@ -211,13 +211,13 @@ function SetupPage() {
             </div>
           </div>
 
-          <div className="ml-14">
+          <div className="ml-8 sm:ml-14">
             <div
               onClick={handleCvClick}
               onDragOver={handleCvDragOver}
               onDragLeave={handleCvDragLeave}
               onDrop={handleCvDrop}
-              className={`border-2 border-dashed p-12 text-center cursor-pointer transition-colors ${
+              className={`border-2 border-dashed p-6 sm:p-12 text-center cursor-pointer transition-colors ${
                 dragActive === "cv"
                   ? "border-accent bg-accent-bg"
                   : cvFile
@@ -268,7 +268,7 @@ function SetupPage() {
             </div>
           </div>
 
-          <div className="ml-14">
+          <div className="ml-8 sm:ml-14">
             {/* Toggle tabs */}
             <div className="flex border-b border-line mb-4">
               <div
@@ -296,7 +296,7 @@ function SetupPage() {
             {jdInputType === "text" ? (
               <textarea
                 placeholder="Paste the job description here..."
-                className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent text-sm leading-relaxed min-h-[140px] resize-y"
+                className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent text-sm leading-relaxed min-h-[120px] sm:min-h-[140px] resize-y"
                 value={jdText}
                 onChange={(e) => setJdText(e.target.value)}
               />
@@ -307,7 +307,7 @@ function SetupPage() {
                   onDragOver={handleJdDragOver}
                   onDragLeave={handleJdDragLeave}
                   onDrop={handleJdDrop}
-                  className={`border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
+                  className={`border-2 border-dashed p-5 sm:p-8 text-center cursor-pointer transition-colors ${
                     dragActive === "jd"
                       ? "border-accent bg-accent-bg"
                       : jdFile
@@ -360,11 +360,11 @@ function SetupPage() {
             </div>
           </div>
 
-          <div className="ml-14 space-y-4">
+          <div className="ml-8 sm:ml-14 space-y-4">
             {/* Adaptive option */}
             <div
               onClick={() => setMode("adaptive")}
-              className={`border p-6 grid grid-cols-[auto_1fr_auto] gap-5 items-center cursor-pointer ${
+              className={`border p-6 grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-5 items-center cursor-pointer ${
                 mode === "adaptive" ? "border-accent bg-accent-bg" : "border-line-strong"
               }`}
             >
@@ -379,7 +379,7 @@ function SetupPage() {
                   AI generates questions dynamically and decides when to stop. Length: 6–10 questions.
                 </div>
               </div>
-              <div className="font-mono text-xs uppercase tracking-widest text-accent">
+              <div className="hidden sm:block font-mono text-xs uppercase tracking-widest text-accent">
                 Recommended
               </div>
             </div>
@@ -387,7 +387,7 @@ function SetupPage() {
             {/* Fixed length option */}
             <div
               onClick={() => setMode("fixed")}
-              className={`border p-6 grid grid-cols-[auto_1fr_auto] gap-5 items-center cursor-pointer ${
+              className={`border p-6 grid grid-cols-[auto_1fr] sm:grid-cols-[auto_1fr_auto] gap-5 items-start sm:items-center cursor-pointer ${
                 mode === "fixed" ? "border-accent bg-accent-bg" : "border-line-strong"
               }`}
             >
@@ -406,7 +406,7 @@ function SetupPage() {
               </div>
               {/* Question count pills */}
               <div
-                className={`flex gap-2 ${mode === "adaptive" ? "opacity-50" : ""}`}
+                className={`col-span-2 sm:col-span-1 flex flex-wrap gap-2 ${mode === "adaptive" ? "opacity-50" : ""}`}
                 onClick={(e) => e.stopPropagation()}
               >
                 {([5, 7, 10] as const).map((n) => (
@@ -424,7 +424,7 @@ function SetupPage() {
         </div>
 
         {/* AUDIO STORAGE TOGGLE */}
-        <div className="mb-14 ml-14">
+        <div className="mb-10 sm:mb-14 ml-8 sm:ml-14">
           <label className="flex items-start gap-4 cursor-pointer">
             <input
               type="checkbox"
@@ -461,11 +461,11 @@ function SetupPage() {
         </div>
 
         {/* SUBMIT */}
-        <div className="ml-14">
+        <div className="ml-8 sm:ml-14">
           <button
             disabled={!isFormValid || submitting}
             onClick={handleSubmit}
-            className="bg-ink text-page px-10 py-5 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto bg-ink text-page px-8 sm:px-10 py-4 sm:py-5 font-mono text-sm sm:text-base uppercase tracking-widest hover:bg-accent transition-colors flex items-center justify-center gap-4 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {submitting ? "Generating..." : (
               <>

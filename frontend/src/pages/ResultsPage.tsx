@@ -160,16 +160,16 @@ function ResultsPage() {
       <TopNav />
 
       {/* ACTION BAR */}
-      <div className="border-b border-line px-12 py-3 flex justify-end items-center gap-3 bg-frame">
+      <div className="border-b border-line px-4 sm:px-8 lg:px-12 py-3 flex justify-end items-center gap-2 sm:gap-3 bg-frame">
         <button
           onClick={() => setShowDeleteModal(true)}
-          className="border border-line-strong px-5 py-2.5 font-mono text-xs uppercase tracking-widest text-ink-soft hover:text-warn hover:border-warn transition-colors"
+          className="border border-line-strong px-3 sm:px-5 py-2 sm:py-2.5 font-mono text-xs uppercase tracking-widest text-ink-soft hover:text-warn hover:border-warn transition-colors"
         >
           Delete Report
         </button>
         <button
           onClick={() => generateReportPDF(report)}
-          className="bg-ink text-page px-5 py-2.5 font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-2"
+          className="bg-ink text-page px-3 sm:px-5 py-2 sm:py-2.5 font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-2"
         >
           <span className="font-display italic text-base">↓</span>
           Download PDF
@@ -177,19 +177,19 @@ function ResultsPage() {
       </div>
 
       {/* HERO SECTION */}
-      <div className="bg-soft border-b border-line py-20 px-12 text-center">
+      <div className="bg-soft border-b border-line py-10 sm:py-20 px-6 sm:px-12 text-center">
 
         <div className="font-mono text-xs uppercase tracking-widest text-accent mb-4">
           — Session complete · {formatDate(report.timestamp)}
         </div>
 
-        <h1 className="font-display text-7xl leading-none mb-12">
+        <h1 className="font-display text-5xl sm:text-6xl lg:text-7xl leading-none mb-8 sm:mb-12">
           Your <em className="italic text-accent">results</em>.
         </h1>
 
         {/* CIRCULAR SCORE RING */}
-        <div className="inline-block relative mb-8">
-          <svg width="240" height="240" className="-rotate-90">
+        <div className="inline-block relative w-40 sm:w-48 lg:w-[240px] mb-6 sm:mb-8">
+          <svg viewBox="0 0 240 240" className="-rotate-90 w-full h-full">
             <circle
               cx="120"
               cy="120"
@@ -214,7 +214,7 @@ function ResultsPage() {
 
           {/* Score number overlay */}
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <div className="font-display text-8xl leading-none text-ink">
+            <div className="font-display text-5xl sm:text-7xl lg:text-8xl leading-none text-ink">
               {Math.round(report.overall_score)}
             </div>
             <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mt-2">
@@ -224,14 +224,14 @@ function ResultsPage() {
         </div>
 
         {/* Tagline */}
-        <div className="font-display text-3xl italic text-accent">
+        <div className="font-display text-2xl sm:text-3xl italic text-accent">
           {getScoreTagline(report.overall_score)}.
         </div>
       </div>
 
       {/* AI SUMMARY CARD */}
-      <div className="max-w-3xl mx-auto px-12 py-16">
-        <div className="bg-accent-bg border-l-2 border-accent p-10 relative">
+      <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-10 sm:py-16">
+        <div className="bg-accent-bg border-l-2 border-accent p-6 sm:p-10 relative">
           <div className="absolute -top-5 left-8 font-display italic text-7xl text-accent leading-none">
             "
           </div>
@@ -240,15 +240,15 @@ function ResultsPage() {
             — AI-generated summary
           </div>
 
-          <div className="font-display text-2xl leading-relaxed text-ink">
+          <div className="font-display text-xl sm:text-2xl leading-relaxed text-ink">
             {report.ai_summary}
           </div>
         </div>
       </div>
 
       {/* PERFORMANCE BREAKDOWN */}
-      <div className="max-w-4xl mx-auto px-12 pb-20">
-        <h2 className="font-display text-4xl mb-10">
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 pb-12 sm:pb-20">
+        <h2 className="font-display text-3xl sm:text-4xl mb-6 sm:mb-10">
           Performance <em className="italic">breakdown</em>
         </h2>
 
@@ -286,7 +286,7 @@ function ResultsPage() {
         </div>
 
         {/* Quick stats */}
-        <div className="mt-16 grid grid-cols-3 gap-px bg-line border border-line">
+        <div className="mt-8 sm:mt-16 grid grid-cols-1 sm:grid-cols-3 gap-px bg-line border border-line">
           <div className="bg-frame p-6">
             <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
               Questions
@@ -315,13 +315,13 @@ function ResultsPage() {
       </div>
 
       {/* PER-QUESTION BREAKDOWN */}
-      <div className="max-w-4xl mx-auto px-12 pb-20">
-        <div className="grid grid-cols-[auto_1fr_auto] gap-6 items-center mb-10">
-          <h2 className="font-display text-4xl">
+      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 pb-12 sm:pb-20">
+        <div className="grid grid-cols-[auto_1fr_auto] gap-3 sm:gap-6 items-center mb-6 sm:mb-10">
+          <h2 className="font-display text-3xl sm:text-4xl">
             By <em className="italic">question</em>
           </h2>
           <div className="h-px bg-line-strong"></div>
-          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+          <div className="hidden sm:block font-mono text-xs uppercase tracking-widest text-ink-soft">
             {report.interview_results.length} answers
           </div>
         </div>
@@ -339,7 +339,7 @@ function ResultsPage() {
                 {/* Card header (always visible, clickable) */}
                 <button
                   onClick={() => setExpandedId(isExpanded ? null : idx)}
-                  className="w-full p-7 grid grid-cols-[auto_1fr_auto_auto] gap-6 items-center text-left hover:bg-soft transition-colors"
+                  className="w-full p-4 sm:p-7 grid grid-cols-[auto_1fr_auto_auto] gap-3 sm:gap-6 items-center text-left hover:bg-soft transition-colors"
                 >
                   {/* Roman numeral */}
                   <div className="font-display text-3xl italic text-accent leading-none w-8 text-center">
@@ -357,7 +357,7 @@ function ResultsPage() {
                   </div>
 
                   {/* Big score */}
-                  <div className="font-display text-4xl text-accent leading-none">
+                  <div className="font-display text-2xl sm:text-4xl text-accent leading-none">
                     {score}
                   </div>
 
@@ -369,14 +369,14 @@ function ResultsPage() {
 
                 {/* Expanded content */}
                 {isExpanded && (
-                  <div className="border-t border-line p-7 bg-soft space-y-8">
+                  <div className="border-t border-line p-4 sm:p-7 bg-soft space-y-6 sm:space-y-8">
 
                     {/* Transcript */}
                     <div>
                       <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-3">
                         — Your answer (transcript)
                       </div>
-                      <div className="font-display text-lg leading-relaxed text-ink italic">
+                      <div className="font-display text-base sm:text-lg leading-relaxed text-ink italic">
                         "{q.transcript}"
                       </div>
                     </div>
@@ -386,7 +386,7 @@ function ResultsPage() {
                       <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-4">
                         — Detailed metrics
                       </div>
-                      <div className="grid grid-cols-2 gap-x-8 gap-y-3 font-mono text-xs">
+                      <div className="grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-3 font-mono text-xs">
                         <div className="flex justify-between border-b border-line pb-2">
                           <span className="text-ink-soft">Relevance</span>
                           <span className="text-ink">{Math.round(q.relevance_score)} / 100</span>
@@ -427,7 +427,7 @@ function ResultsPage() {
                       <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-4">
                         — Speech stats
                       </div>
-                      <div className="grid grid-cols-4 gap-4 font-mono text-xs">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 font-mono text-xs">
                         <div className="border border-line p-3 bg-frame">
                           <div className="text-ink-soft mb-1">Duration</div>
                           <div className="font-display text-lg text-ink">
@@ -477,13 +477,13 @@ function ResultsPage() {
                       </div>
 
                       {/* Component indicators */}
-                      <div className="grid grid-cols-3 gap-3 mb-5">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3 mb-4 sm:mb-5">
                         <div className={`border p-4 text-center ${
                           q.star_analysis.has_situation
                             ? "border-success bg-success/10"
                             : "border-line bg-soft"
                         }`}>
-                          <div className={`font-display text-2xl mb-1 ${
+                          <div className={`font-display text-xl sm:text-2xl mb-1 ${
                             q.star_analysis.has_situation ? "text-success" : "text-ink-faint"
                           }`}>
                             {q.star_analysis.has_situation ? "✓" : "—"}
@@ -498,7 +498,7 @@ function ResultsPage() {
                             ? "border-success bg-success/10"
                             : "border-line bg-soft"
                         }`}>
-                          <div className={`font-display text-2xl mb-1 ${
+                          <div className={`font-display text-xl sm:text-2xl mb-1 ${
                             q.star_analysis.has_action ? "text-success" : "text-ink-faint"
                           }`}>
                             {q.star_analysis.has_action ? "✓" : "—"}
@@ -513,7 +513,7 @@ function ResultsPage() {
                             ? "border-success bg-success/10"
                             : "border-line bg-soft"
                         }`}>
-                          <div className={`font-display text-2xl mb-1 ${
+                          <div className={`font-display text-xl sm:text-2xl mb-1 ${
                             q.star_analysis.has_result ? "text-success" : "text-ink-faint"
                           }`}>
                             {q.star_analysis.has_result ? "✓" : "—"}
@@ -608,15 +608,15 @@ interface MetricRowProps {
 
 function MetricRow({ label, value, color }: MetricRowProps) {
   return (
-    <div className="grid grid-cols-[180px_1fr_60px] gap-8 items-center py-4 border-b border-line">
-      <div className="font-display text-2xl">{label}</div>
+    <div className="grid grid-cols-[100px_1fr_40px] sm:grid-cols-[180px_1fr_60px] gap-4 sm:gap-8 items-center py-3 sm:py-4 border-b border-line">
+      <div className="font-display text-base sm:text-2xl">{label}</div>
       <div className="h-2 bg-line relative">
         <div
           className={`absolute inset-y-0 left-0 ${color} transition-all duration-1000 ease-out`}
           style={{ width: `${value}%` }}
         />
       </div>
-      <div className="text-right font-mono text-xl text-ink">{value}</div>
+      <div className="text-right font-mono text-sm sm:text-xl text-ink">{value}</div>
     </div>
   );
 }

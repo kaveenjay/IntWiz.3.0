@@ -141,16 +141,16 @@ function SettingsPage() {
     <div className="min-h-screen bg-frame">
       <TopNav />
 
-      <div className="max-w-3xl mx-auto px-12 py-14">
+      <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
           — Preferences
         </div>
-        <h1 className="font-display text-6xl leading-none mb-4">
+        <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           <em className="italic text-accent">Settings</em>
         </h1>
-        <p className="text-ink-soft text-base mb-14">
+        <p className="text-ink-soft text-sm sm:text-base mb-10 sm:mb-14">
           Manage your account and customize your interview defaults.
         </p>
 
@@ -158,7 +158,7 @@ function SettingsPage() {
         {/* ACCOUNT SECTION */}
         <div className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-8">
-            <h2 className="font-display text-3xl">Account</h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Account</h2>
             <div className="h-px bg-line-strong" />
           </div>
 
@@ -194,7 +194,7 @@ function SettingsPage() {
         {preferences && (
           <div className="mb-16">
             <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-8">
-              <h2 className="font-display text-3xl">
+              <h2 className="font-display text-2xl sm:text-3xl">
                 Interview <em className="italic">defaults</em>
               </h2>
               <div className="h-px bg-line-strong" />
@@ -215,7 +215,7 @@ function SettingsPage() {
                       : "Fixed — pre-set number of questions"}
                   </div>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <button
                     onClick={() => handleUpdate({ defaultMode: "adaptive" })}
                     disabled={saving}
@@ -250,7 +250,7 @@ function SettingsPage() {
                       {preferences.defaultTargetQuestions} questions per interview
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-wrap">
                     {([5, 7, 10] as const).map((count) => (
                       <button
                         key={count}
@@ -301,11 +301,11 @@ function SettingsPage() {
         {/* INFO SECTION */}
         <div className="mb-16">
           <div className="grid grid-cols-[auto_1fr] gap-6 items-center mb-8">
-            <h2 className="font-display text-3xl">Information</h2>
+            <h2 className="font-display text-2xl sm:text-3xl">Information</h2>
             <div className="h-px bg-line-strong" />
           </div>
 
-          <div className="grid grid-cols-2 gap-px bg-line border border-line">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line border border-line">
             <div className="bg-frame p-6">
               <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">
                 Application
@@ -328,7 +328,7 @@ function SettingsPage() {
       {/* CHANGE PASSWORD MODAL */}
       {showPasswordModal && (
         <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-frame border border-line max-w-md w-full p-10">
+          <div className="bg-frame border border-line max-w-md w-full p-6 sm:p-10">
             <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
               — Account security
             </div>
