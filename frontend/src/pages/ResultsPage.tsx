@@ -1,19 +1,24 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TopNav from "../components/TopNav";
-import { getReport } from "../services/api";
+import { getReport, deleteReport } from "../services/api";
 import type { FullReport } from "../services/api";
+import { useAuth } from "../contexts/AuthContext";
 import generateReportPDF from "../utils/generateReportPDF";
 
 function ResultsPage() {
   const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const [report, setReport] = useState<FullReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [animatedScore, setAnimatedScore] = useState(0);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
 
   useEffect(() => {
     if (!reportId) {
@@ -127,6 +132,27 @@ function ResultsPage() {
     return numerals[num - 1] || num.toString();
   };
 
+  const handleDelete = async () => {
+    if (!user?.uid || !report) return;
+
+    setDeleting(true);
+    setDeleteError("");
+
+    try {
+      await deleteReport(report.report_id, user.uid);
+      navigate("/dashboard");
+    } catch (err: any) {
+      if (err.response?.status === 403) {
+        setDeleteError("You don't have permission to delete this report.");
+      } else if (err.response?.status === 404) {
+        setDeleteError("This report no longer exists.");
+      } else {
+        setDeleteError("Couldn't delete the report. Please try again.");
+      }
+      setDeleting(false);
+    }
+  };
+
   // ===== MAIN UI =====
   return (
     <div className="min-h-screen bg-frame">
@@ -134,7 +160,13 @@ function ResultsPage() {
       <TopNav />
 
       {/* ACTION BAR */}
-      <div className="border-b border-line px-12 py-4 flex justify-end items-center">
+      <div className="border-b border-line px-12 py-3 flex justify-end items-center gap-3 bg-frame">
+        <button
+          onClick={() => setShowDeleteModal(true)}
+          className="border border-line-strong px-5 py-2.5 font-mono text-xs uppercase tracking-widest text-ink-soft hover:text-warn hover:border-warn transition-colors"
+        >
+          Delete Report
+        </button>
         <button
           onClick={() => generateReportPDF(report)}
           className="bg-ink text-page px-5 py-2.5 font-mono text-xs uppercase tracking-widest hover:bg-accent transition-colors flex items-center gap-2"
@@ -509,6 +541,59 @@ function ResultsPage() {
           })}
         </div>
       </div>
+
+      {/* DELETE CONFIRMATION MODAL */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+          <div className="bg-frame border border-warn max-w-md w-full p-10">
+            <div className="font-mono text-xs uppercase tracking-widest text-warn mb-3">
+              — Permanent action
+            </div>
+            <h3 className="font-display text-3xl mb-4">
+              Delete this <em className="italic text-warn">report</em>?
+            </h3>
+            <p className="text-ink-soft text-sm leading-relaxed mb-2">
+              This will permanently delete:
+            </p>
+            <ul className="text-ink-soft text-sm leading-relaxed mb-6 list-none pl-0">
+              <li className="py-1 border-b border-line">• The full interview report</li>
+              <li className="py-1 border-b border-line">• All AI-generated feedback and metrics</li>
+              <li className="py-1">• Any saved audio recordings from this session</li>
+            </ul>
+            <p className="text-ink-soft text-sm mb-8">
+              This action cannot be undone.
+            </p>
+
+            {deleteError && (
+              <div className="mb-4 px-4 py-3 bg-warn/10 border-l-2 border-warn text-warn text-sm">
+                {deleteError}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeleteModal(false);
+                  setDeleteError("");
+                }}
+                disabled={deleting}
+                className="flex-1 py-3 border border-line-strong font-mono text-xs uppercase tracking-widest text-ink hover:bg-soft transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="flex-1 py-3 bg-warn text-page font-mono text-xs uppercase tracking-widest hover:opacity-90 transition-opacity disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete Forever"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -266,6 +266,16 @@ export const getUserReports = async (userId: string): Promise<UserReportsRespons
   return response.data;
 };
 
+export const deleteReport = async (
+  reportId: string,
+  userId: string
+): Promise<{ report_id: string; status: string; audio_files_deleted: number }> => {
+  const response = await api.delete(`/delete-report/${reportId}`, {
+    params: { user_id: userId },
+  });
+  return response.data;
+};
+
 // ===== User preferences =====
 
 export interface UserPreferences {

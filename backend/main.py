@@ -710,6 +710,85 @@ async def get_report(report_id: str):
         raise HTTPException(status_code=500, detail=f"Error fetching report: {e}")
 
 
+@app.delete("/delete-report/{report_id}")
+async def delete_report(report_id: str, user_id: str):
+    """
+    Deletes a report and any associated audio files.
+
+    Security: requires user_id to match the report's owner to prevent
+    unauthorized deletions.
+
+    Args:
+        report_id: The Firestore document ID of the report
+        user_id: The authenticated user's UID (passed as query parameter)
+
+    Returns:
+        Confirmation of deletion with counts of items removed
+    """
+    try:
+        # Step 1: Fetch the report to verify ownership
+        report_ref = db.collection("reports").document(report_id)
+        report_doc = report_ref.get()
+
+        if not report_doc.exists:
+            raise HTTPException(status_code=404, detail="Report not found")
+
+        report_data = report_doc.to_dict()
+
+        # Security: verify ownership
+        if report_data.get("user_id") != user_id:
+            raise HTTPException(
+                status_code=403,
+                detail="You don't have permission to delete this report"
+            )
+
+        # Step 2: Delete associated audio files (if any)
+        audio_files_deleted = 0
+        try:
+            from firebase_admin import storage
+            bucket = storage.bucket()
+
+            # Audio files live at: interview-audio/{user_id}/{interview_id}/
+            # We need the interview_id from the first interview_result that has audio
+            interview_results = report_data.get("interview_results", [])
+            interview_ids = set()
+            for result in interview_results:
+                audio_url = result.get("audio_url")
+                if audio_url:
+                    # Extract interview_id from URL pattern
+                    # URL: https://storage.googleapis.com/<bucket>/interview-audio/<user_id>/<interview_id>/q1_answer.wav
+                    parts = audio_url.split("/interview-audio/")
+                    if len(parts) > 1:
+                        path_after = parts[1].split("/")
+                        if len(path_after) >= 2:
+                            interview_ids.add(path_after[1])
+
+            # Delete all audio files in each interview folder
+            for interview_id in interview_ids:
+                prefix = f"interview-audio/{user_id}/{interview_id}/"
+                blobs = bucket.list_blobs(prefix=prefix)
+                for blob in blobs:
+                    blob.delete()
+                    audio_files_deleted += 1
+        except Exception as audio_err:
+            # Log but don't fail the deletion if audio cleanup fails
+            print(f"Audio cleanup warning: {audio_err}")
+
+        # Step 3: Delete the Firestore report document
+        report_ref.delete()
+
+        return {
+            "report_id": report_id,
+            "status": "deleted",
+            "audio_files_deleted": audio_files_deleted,
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to delete report: {e}")
+
+
 @app.get("/get-user-reports/{user_id}")
 async def get_user_reports(user_id: str, limit: int = 20):
     """
