@@ -7,6 +7,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import HelpPage from "./pages/HelpPage";
+import MethodologyPage from "./pages/MethodologyPage";
 import DashboardPage from "./pages/DashboardPage";
 import SetupPage from "./pages/SetupPage";
 import InterviewRoomPage from "./pages/InterviewRoomPage";
@@ -71,6 +72,14 @@ function App() {
         element={
           <ProtectedRoute>
             <HelpPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/methodology"
+        element={
+          <ProtectedRoute>
+            <MethodologyPage />
           </ProtectedRoute>
         }
       />

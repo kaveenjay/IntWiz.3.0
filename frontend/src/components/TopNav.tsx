@@ -167,6 +167,15 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
                   Settings
                 </Link>
 
+                {/* Methodology */}
+                <Link
+                  to="/methodology"
+                  onClick={() => setDropdownOpen(false)}
+                  className="block px-4 py-2.5 text-sm text-ink hover:bg-soft transition-colors"
+                >
+                  Methodology
+                </Link>
+
                 <div className="border-t border-line my-1" />
 
                 {/* Logout */}
@@ -220,6 +229,17 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
               }`}
             >
               Help
+            </Link>
+            <Link
+              to="/methodology"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-4 py-3 text-sm transition-colors ${
+                location.pathname === '/methodology'
+                  ? 'text-ink font-medium bg-soft'
+                  : 'text-ink-soft hover:text-ink hover:bg-soft'
+              }`}
+            >
+              Methodology
             </Link>
           </div>
         </div>

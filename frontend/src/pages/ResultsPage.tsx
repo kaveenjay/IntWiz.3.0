@@ -5,6 +5,7 @@ import { getReport, deleteReport } from "../services/api";
 import type { FullReport } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import generateReportPDF from "../utils/generateReportPDF";
+import MetricTooltip from "../components/MetricTooltip";
 
 function ResultsPage() {
   const { reportId } = useParams<{ reportId: string }>();
@@ -248,8 +249,13 @@ function ResultsPage() {
 
       {/* PERFORMANCE BREAKDOWN */}
       <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 pb-12 sm:pb-20">
-        <h2 className="font-display text-3xl sm:text-4xl mb-6 sm:mb-10">
-          Performance <em className="italic">breakdown</em>
+        <h2 className="font-display text-3xl sm:text-4xl mb-6 sm:mb-10 flex items-center">
+          Performance <em className="italic ml-2">breakdown</em>
+          <MetricTooltip
+            title="Overall score"
+            description="A weighted composite of all six metrics: Relevance (25%), Technical depth (20%), STAR structure (15%), Fluency (15%), Pacing (10%), Pause quality (8%), and Confidence (7%)."
+            details="Weightings reflect the relative importance of content quality over delivery style in professional interview contexts."
+          />
         </h2>
 
         <div className="space-y-6">
@@ -257,31 +263,79 @@ function ResultsPage() {
             label="Relevance"
             value={Math.round(report.average_relevance)}
             color="bg-accent"
+            tooltip={
+              <MetricTooltip
+                title="Relevance"
+                description="How closely your answer aligns with the role's vocabulary and your CV. Higher scores mean you're discussing topics directly relevant to the position."
+                details="Calculated using TF-IDF cosine similarity between your transcript and the combined CV + JD context. Measures vocabulary alignment, not answer structure."
+                methodologyAnchor="relevance"
+              />
+            }
           />
           <MetricRow
             label="Technical depth"
             value={Math.round(report.average_technical_depth)}
             color="bg-accent-soft"
+            tooltip={
+              <MetricTooltip
+                title="Technical depth"
+                description="Density of domain-specific terminology in your answer. Higher density signals genuine expertise vs surface-level knowledge."
+                details="The AI extracts technical vocabulary from your CV/JD (Pass 1) and identifies expert terms in your transcript (Pass 2). Weighted matching applied: CV/JD-aligned terms count fully, transcript-only terms count at 50%."
+                methodologyAnchor="technical-depth"
+              />
+            }
           />
           <MetricRow
             label="STAR structure"
             value={Math.round(report.average_star)}
             color="bg-gold"
+            tooltip={
+              <MetricTooltip
+                title="STAR structure"
+                description="Whether your answer follows the STAR framework (Situation, Task, Action, Result) — a widely-recommended format for behavioural answers."
+                details="The AI detects each component independently. Higher scores mean you're providing context, describing your actions, and explaining outcomes."
+                methodologyAnchor="star"
+              />
+            }
           />
           <MetricRow
             label="Fluency"
             value={Math.round(report.average_fluency)}
             color="bg-accent-soft"
+            tooltip={
+              <MetricTooltip
+                title="Fluency"
+                description="How smoothly you speak. Measured by counting filler words ('um', 'uh', 'like') relative to total word count."
+                details="Speaking naturally without excessive hedging signals confidence and preparation. Score is inverse to filler ratio: fewer fillers = higher fluency."
+                methodologyAnchor="fluency"
+              />
+            }
           />
           <MetricRow
             label="Pacing"
             value={Math.round(report.average_pacing)}
             color="bg-accent"
+            tooltip={
+              <MetricTooltip
+                title="Pacing"
+                description="Whether your answer length and speed are appropriate. Combines duration (45–90s ideal) and words-per-minute."
+                details="Too short suggests under-preparation; too long can lose listeners. Speech rate factors in: too slow feels rehearsed, too fast feels rushed."
+                methodologyAnchor="pacing"
+              />
+            }
           />
           <MetricRow
             label="Pause quality"
             value={Math.round(report.average_pause_quality)}
             color="bg-accent-soft"
+            tooltip={
+              <MetricTooltip
+                title="Pause quality"
+                description="How effectively you use silence. Strategic 1–2 second pauses between thoughts signal composure."
+                details="Based on Goldman-Eisler (1968) research on professional speech patterns. Filters out breath/rhythm gaps below 500ms; only counts meaningful thought pauses."
+                methodologyAnchor="pause-quality"
+              />
+            }
           />
         </div>
 
@@ -412,11 +466,27 @@ function ResultsPage() {
                           <span className="text-ink">{Math.round(q.pause_quality_score)} / 100</span>
                         </div>
                         <div className="flex justify-between border-b border-line pb-2">
-                          <span className="text-ink-soft">Vocal confidence</span>
+                          <span className="text-ink-soft inline-flex items-center">
+                            Vocal confidence
+                            <MetricTooltip
+                              title="Vocal confidence"
+                              description="Acoustic confidence indicator from voice tone. Measures vocal characteristics like pitch stability and energy."
+                              details="Derived from acoustic emotion model. Note: trained on theatrical speech corpora — may underestimate confidence in professionally controlled interview speech."
+                              methodologyAnchor="vocal-confidence"
+                            />
+                          </span>
                           <span className="text-ink">{Math.round(q.confidence_score)} / 100</span>
                         </div>
                         <div className="flex justify-between border-b border-line pb-2">
-                          <span className="text-ink-soft">Engagement</span>
+                          <span className="text-ink-soft inline-flex items-center">
+                            Engagement
+                            <MetricTooltip
+                              title="Engagement"
+                              description="Acoustic measure of vocal energy and animation in delivery. Reflects how dynamic versus monotone your speech sounds."
+                              details="Calculated from acoustic features. Same model limitation as Vocal Confidence applies — may not perfectly capture engagement in controlled interview speech."
+                              methodologyAnchor="engagement"
+                            />
+                          </span>
                           <span className="text-ink">{Math.round(q.engagement_score)} / 100</span>
                         </div>
                       </div>
@@ -604,12 +674,13 @@ interface MetricRowProps {
   label: string;
   value: number;
   color: string;
+  tooltip?: React.ReactNode;
 }
 
-function MetricRow({ label, value, color }: MetricRowProps) {
+function MetricRow({ label, value, color, tooltip }: MetricRowProps) {
   return (
     <div className="grid grid-cols-[100px_1fr_40px] sm:grid-cols-[180px_1fr_60px] gap-4 sm:gap-8 items-center py-3 sm:py-4 border-b border-line">
-      <div className="font-display text-base sm:text-2xl">{label}</div>
+      <div className="font-display text-base sm:text-2xl flex items-center">{label}{tooltip}</div>
       <div className="h-2 bg-line relative">
         <div
           className={`absolute inset-y-0 left-0 ${color} transition-all duration-1000 ease-out`}

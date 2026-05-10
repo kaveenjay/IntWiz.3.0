@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import TopNav from "../components/TopNav";
 
 function HelpPage() {
@@ -194,6 +194,15 @@ function HelpPage() {
               interview speech. This is a known limitation documented in the system
               and reflects a broader research finding about domain mismatches in
               affective computing.
+            </p>
+          </div>
+
+          <div className="mt-8 pt-6 border-t border-line">
+            <p className="text-sm text-ink-soft">
+              Want to dig deeper into how each score is calculated?{" "}
+              <Link to="/methodology" className="text-accent border-b border-accent">
+                Read the technical methodology →
+              </Link>
             </p>
           </div>
         </section>
