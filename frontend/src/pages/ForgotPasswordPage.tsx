@@ -75,10 +75,11 @@ function ForgotPasswordPage() {
               )}
 
               <div className="mb-6">
-                <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+                <label htmlFor="forgot-email" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
                   Email
                 </label>
                 <input
+                  id="forgot-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -99,7 +100,7 @@ function ForgotPasswordPage() {
             </form>
           </>
         ) : (
-          <div className="border-l-2 border-success bg-success/10 p-6 mb-6">
+          <div role="status" aria-live="polite" className="border-l-2 border-success bg-success/10 p-6 mb-6">
             <div className="font-mono text-xs uppercase tracking-widest text-success mb-2">
               — Email sent
             </div>

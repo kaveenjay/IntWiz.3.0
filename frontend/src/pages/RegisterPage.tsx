@@ -89,10 +89,11 @@ function RegisterPage() {
         <form onSubmit={handleSubmit}>
           {/* Email field */}
           <div className="mb-5">
-            <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+            <label htmlFor="register-email" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
               Email
             </label>
             <input
+              id="register-email"
               type="email"
               placeholder="you@university.edu"
               className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent"
@@ -105,10 +106,11 @@ function RegisterPage() {
 
           {/* Password field */}
           <div className="mb-5">
-            <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+            <label htmlFor="register-password" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
               Password
             </label>
             <input
+              id="register-password"
               type="password"
               placeholder="At least 6 characters"
               className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent"
@@ -121,10 +123,11 @@ function RegisterPage() {
 
           {/* Confirm Password field */}
           <div className="mb-5">
-            <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+            <label htmlFor="register-confirm-password" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
               Confirm Password
             </label>
             <input
+              id="register-confirm-password"
               type="password"
               placeholder="Re-enter your password"
               className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent"

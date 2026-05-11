@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import TopNav from "../components/TopNav";
 import { getPreferences, savePreferences } from "../services/api";
 import type { UserPreferences } from "../services/api";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 function SettingsPage() {
   const { user, updatePassword } = useAuth();
@@ -20,6 +21,11 @@ function SettingsPage() {
   const [passwordSuccess,   setPasswordSuccess]   = useState(false);
   const [passwordLoading,   setPasswordLoading]   = useState(false);
 
+  const firstPasswordInputRef = useRef<HTMLInputElement>(null);
+  const passwordModalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(passwordModalRef, showPasswordModal);
+
   useEffect(() => {
     if (!user?.uid) return;
 
@@ -36,6 +42,27 @@ function SettingsPage() {
 
     fetchPrefs();
   }, [user?.uid]);
+
+  useEffect(() => {
+    if (!showPasswordModal) return;
+
+    // Focus the first input when modal opens
+    firstPasswordInputRef.current?.focus();
+
+    // Close modal on Escape
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowPasswordModal(false);
+        setPasswordError("");
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showPasswordModal]);
 
   const handleUpdate = async (updates: Partial<UserPreferences>) => {
     if (!preferences || !user) return;
@@ -104,7 +131,8 @@ function SettingsPage() {
           <div className="font-display text-5xl mb-4">
             Int<em className="italic text-accent">Wiz</em>
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+          <div role="status" aria-live="polite" className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            <span className="sr-only">Loading...</span>
             — Loading
           </div>
         </div>
@@ -117,21 +145,23 @@ function SettingsPage() {
     return (
       <div className="min-h-screen bg-frame">
         <TopNav />
-        <div className="max-w-3xl mx-auto px-12 py-20 text-center">
-          <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
-            — Something went wrong
+        <main id="main-content" className="max-w-3xl mx-auto px-12 py-20 text-center">
+          <div role="alert">
+            <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
+              — Something went wrong
+            </div>
+            <h1 className="font-display text-5xl mb-4">
+              Couldn't load <em className="italic text-accent">settings</em>
+            </h1>
+            <p className="text-ink-soft mb-8">{error}</p>
           </div>
-          <h1 className="font-display text-5xl mb-4">
-            Couldn't load <em className="italic text-accent">settings</em>
-          </h1>
-          <p className="text-ink-soft mb-8">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-ink text-page px-8 py-4 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors"
           >
             Try Again
           </button>
-        </div>
+        </main>
       </div>
     );
   }
@@ -141,11 +171,11 @@ function SettingsPage() {
     <div className="min-h-screen bg-frame">
       <TopNav />
 
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
+      <main id="main-content" className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
-          — Preferences
+          <span aria-hidden="true">— </span>Preferences
         </div>
         <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           <em className="italic text-accent">Settings</em>
@@ -323,16 +353,19 @@ function SettingsPage() {
             </div>
           </div>
         </div>
-      </div>
+      </main>
 
       {/* CHANGE PASSWORD MODAL */}
       {showPasswordModal && (
-        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-frame border border-line max-w-md w-full p-6 sm:p-10">
+        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6" role="dialog" aria-modal="true" aria-labelledby="password-modal-heading">
+          <div
+            ref={passwordModalRef}
+            className="bg-frame border border-line max-w-md w-full p-6 sm:p-10"
+          >
             <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
               — Account security
             </div>
-            <h3 className="font-display text-3xl mb-2">
+            <h3 id="password-modal-heading" className="font-display text-3xl mb-2">
               Change <em className="italic text-accent">password</em>
             </h3>
             <p className="text-ink-soft text-sm mb-8">
@@ -340,7 +373,7 @@ function SettingsPage() {
             </p>
 
             {passwordSuccess ? (
-              <div className="border-l-2 border-success bg-success/10 p-6">
+              <div role="status" aria-live="polite" className="border-l-2 border-success bg-success/10 p-6">
                 <div className="font-mono text-xs uppercase tracking-widest text-success mb-2">
                   — Success
                 </div>
@@ -357,10 +390,12 @@ function SettingsPage() {
                 )}
 
                 <div className="mb-4">
-                  <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+                  <label htmlFor="settings-current-password" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
                     Current password
                   </label>
                   <input
+                    ref={firstPasswordInputRef}
+                    id="settings-current-password"
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
@@ -371,10 +406,11 @@ function SettingsPage() {
                 </div>
 
                 <div className="mb-4">
-                  <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+                  <label htmlFor="settings-new-password" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
                     New password
                   </label>
                   <input
+                    id="settings-new-password"
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
@@ -386,10 +422,11 @@ function SettingsPage() {
                 </div>
 
                 <div className="mb-6">
-                  <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+                  <label htmlFor="settings-confirm-password" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
                     Confirm new password
                   </label>
                   <input
+                    id="settings-confirm-password"
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
@@ -429,7 +466,7 @@ function SettingsPage() {
       )}
       {/* Floating saved confirmation toast — fixed position, always visible */}
       {savedConfirmation && (
-        <div className="fixed bottom-8 right-8 z-50 px-5 py-4 bg-frame border border-success shadow-lg text-success text-sm font-mono uppercase tracking-widest animate-in fade-in slide-in-from-bottom-4">
+        <div role="status" aria-live="polite" className="fixed bottom-8 right-8 z-50 px-5 py-4 bg-frame border border-success shadow-lg text-success text-sm font-mono uppercase tracking-widest animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center gap-3">
             <span className="text-lg">✓</span>
             <span>{savedConfirmation}</span>

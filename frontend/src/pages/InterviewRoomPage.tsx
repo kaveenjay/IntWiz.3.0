@@ -176,8 +176,9 @@ function InterviewRoomPage() {
           <div className="font-display text-5xl mb-4">
             Int<em className="italic text-accent">Wiz</em>
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
-            — Loading
+          <div role="status" aria-live="polite" className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            <span className="sr-only">Loading interview, please wait.</span>
+            — Loading interview
           </div>
         </div>
       </div>
@@ -269,6 +270,16 @@ function InterviewRoomPage() {
   // ===== Main UI =====
   return (
     <div className="h-screen overflow-hidden bg-frame flex flex-col lg:grid lg:grid-cols-[360px_1fr]">
+
+      {/* Screen reader announcements for phase transitions */}
+      <div role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+        {phase === "recording" && "Recording your answer"}
+        {phase === "analyzing" && "Analyzing your answer"}
+        {phase === "fetching-next" && "Preparing the next question"}
+        {phase === "saving-report" && "Saving your interview report"}
+        {phase === "error" && `Error: ${analyzeError}`}
+        {phase === "idle" && currentQuestion && `Ready for question ${questionNumber}`}
+      </div>
 
       {/* ===== LEFT SIDEBAR ===== */}
       <aside className="bg-soft border-t lg:border-t-0 lg:border-r border-line p-4 lg:p-8 flex flex-col order-2 lg:order-1 lg:h-screen overflow-y-auto">
@@ -436,7 +447,7 @@ function InterviewRoomPage() {
       </aside>
 
       {/* ===== RIGHT MAIN AREA ===== */}
-      <main className="flex flex-col flex-1 min-h-0 order-1 lg:order-2 overflow-hidden lg:h-screen">
+      <main id="main-content" className="flex flex-col flex-1 min-h-0 order-1 lg:order-2 overflow-hidden lg:h-screen">
 
         {/* Top bar with End Interview button */}
         <div className="border-b border-line px-4 sm:px-8 lg:px-12 py-3 sm:py-4 lg:py-5 flex justify-between items-center">
@@ -488,7 +499,7 @@ function InterviewRoomPage() {
 
           {/* Current question (highlighted) — only shown when there's a question to answer */}
           {currentQuestion && (
-            <div className="flex gap-3 sm:gap-4 pt-4">
+            <div className="flex gap-3 sm:gap-4 pt-4" role="region" aria-label={`Question ${questionNumber}`}>
               <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-accent text-page flex-shrink-0 flex items-center justify-center font-display italic text-lg">
                 A
               </div>

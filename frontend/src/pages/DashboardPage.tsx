@@ -58,7 +58,8 @@ function DashboardPage() {
           <div className="font-display text-5xl mb-4">
             Int<em className="italic text-accent">Wiz</em>
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+          <div role="status" aria-live="polite" className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            <span className="sr-only">Loading...</span>
             — Loading
           </div>
         </div>
@@ -71,23 +72,25 @@ function DashboardPage() {
     return (
       <div className="min-h-screen bg-frame">
         {topNav}
-        <div className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center text-center px-6">
-          <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
-            — Something went wrong
+        <main id="main-content" className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center text-center px-6">
+          <div role="alert">
+            <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
+              — Something went wrong
+            </div>
+            <h1 className="font-display text-4xl sm:text-5xl mb-4">
+              Couldn't load <em className="italic text-accent">dashboard</em>
+            </h1>
+            <p className="text-ink-soft mb-8">
+              We couldn't fetch your interview history. Please try again.
+            </p>
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl mb-4">
-            Couldn't load <em className="italic text-accent">dashboard</em>
-          </h1>
-          <p className="text-ink-soft mb-8">
-            We couldn't fetch your interview history. Please try again.
-          </p>
           <button
             onClick={() => window.location.reload()}
             className="bg-ink text-page px-8 py-4 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors"
           >
             Try Again
           </button>
-        </div>
+        </main>
       </div>
     );
   }
@@ -167,7 +170,7 @@ function DashboardPage() {
     return (
       <div className="min-h-screen bg-frame">
         {topNav}
-        <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
+        <main id="main-content" className="px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
           {greetingRow}
           {statsGrid}
           <div className="border border-line-strong p-8 sm:p-16 text-center">
@@ -181,7 +184,7 @@ function DashboardPage() {
               Your first interview will appear here. Click 'Start New Interview' above to begin.
             </p>
           </div>
-        </div>
+        </main>
       </div>
     );
   }
@@ -190,7 +193,7 @@ function DashboardPage() {
   return (
     <div className="min-h-screen bg-frame">
       {topNav}
-      <div className="px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
+      <main id="main-content" className="px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
         {greetingRow}
         {statsGrid}
 
@@ -258,7 +261,7 @@ function DashboardPage() {
             ))}
           </div>
         </div>{/* end #past-interviews */}
-      </div>
+      </main>
     </div>
   );
 }

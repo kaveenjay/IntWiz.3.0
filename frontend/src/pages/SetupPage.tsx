@@ -176,7 +176,7 @@ function SetupPage() {
       <TopNav />
 
       {/* MAIN CONTENT */}
-      <div className="max-w-2xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-16">
+      <main id="main-content" className="max-w-2xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-16">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
@@ -295,6 +295,8 @@ function SetupPage() {
 
             {jdInputType === "text" ? (
               <textarea
+                id="setup-jd-textarea"
+                aria-label="Job description text"
                 placeholder="Paste the job description here..."
                 className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent text-sm leading-relaxed min-h-[120px] sm:min-h-[140px] resize-y"
                 value={jdText}
@@ -475,7 +477,7 @@ function SetupPage() {
             )}
           </button>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

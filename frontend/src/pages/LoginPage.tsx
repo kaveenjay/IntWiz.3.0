@@ -77,10 +77,11 @@ function LoginPage() {
         <form onSubmit={handleSubmit}>
           {/* Email field */}
           <div className="mb-5">
-            <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+            <label htmlFor="login-email" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
               Email
             </label>
             <input
+              id="login-email"
               type="email"
               placeholder="you@university.edu"
               className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent"
@@ -93,10 +94,11 @@ function LoginPage() {
 
           {/* Password field */}
           <div className="mb-2">
-            <label className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
+            <label htmlFor="login-password" className="block font-mono text-xs uppercase tracking-widest text-ink-soft mb-2">
               Password
             </label>
             <input
+              id="login-password"
               type="password"
               placeholder="••••••••••••"
               className="w-full px-4 py-3 border border-line-strong bg-frame text-ink placeholder-ink-faint focus:outline-none focus:border-accent"

@@ -78,6 +78,12 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-ink focus:text-page focus:px-4 focus:py-2 focus:font-mono focus:text-xs focus:uppercase focus:tracking-widest"
+      >
+        Skip to main content
+      </a>
       <nav className="bg-frame border-b border-line px-6 sm:px-8 lg:px-12 py-4 lg:py-5 flex justify-between items-center relative">
 
         {/* Logo */}
@@ -118,8 +124,9 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
           {showNavLinks && (
             <button
               onClick={() => setMobileMenuOpen((prev) => !prev)}
-              className="md:hidden p-2 text-ink hover:text-accent transition-colors"
-              aria-label="Toggle menu"
+              aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+              aria-expanded={mobileMenuOpen}
+              className="md:hidden p-2 text-ink hover:text-accent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               <div className="w-6 h-5 flex flex-col justify-between">
                 <span className={`block h-0.5 bg-current transition-transform origin-center ${mobileMenuOpen ? "rotate-45 translate-y-2" : ""}`} />
@@ -131,15 +138,18 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
 
           {/* User avatar + dropdown */}
           <div className="relative" ref={dropdownRef}>
-            <div
-              className="w-9 h-9 rounded-full bg-accent text-page flex items-center justify-center font-medium text-sm cursor-pointer hover:opacity-90 transition-opacity"
+            <button
               onClick={() => setDropdownOpen((prev) => !prev)}
+              aria-label="User menu"
+              aria-expanded={dropdownOpen}
+              aria-haspopup="menu"
+              className="w-9 h-9 rounded-full bg-accent text-page flex items-center justify-center font-medium text-sm cursor-pointer hover:opacity-90 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2"
             >
               {initials}
-            </div>
+            </button>
 
             {dropdownOpen && (
-              <div className="absolute top-12 right-0 w-60 bg-frame border border-line shadow-lg z-50 p-1">
+              <div className="absolute top-12 right-0 w-60 bg-frame border border-line shadow-lg z-50 p-1" role="menu" aria-label="User account menu">
 
                 {/* Signed in as */}
                 <div className="px-4 py-3 border-b border-line">
@@ -153,6 +163,7 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
                 <Link
                   to="/profile"
                   onClick={() => setDropdownOpen(false)}
+                  role="menuitem"
                   className="block px-4 py-2.5 text-sm text-ink hover:bg-soft transition-colors"
                 >
                   Profile
@@ -162,6 +173,7 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
                 <Link
                   to="/settings"
                   onClick={() => setDropdownOpen(false)}
+                  role="menuitem"
                   className="block px-4 py-2.5 text-sm text-ink hover:bg-soft transition-colors"
                 >
                   Settings
@@ -171,6 +183,7 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
                 <Link
                   to="/methodology"
                   onClick={() => setDropdownOpen(false)}
+                  role="menuitem"
                   className="block px-4 py-2.5 text-sm text-ink hover:bg-soft transition-colors"
                 >
                   Methodology
@@ -185,6 +198,7 @@ export default function TopNav({ showNavLinks = true }: TopNavProps) {
                     await logout();
                     navigate("/login");
                   }}
+                  role="menuitem"
                   className="w-full text-left px-4 py-2.5 text-sm text-warn font-medium hover:bg-warn/10 transition-colors"
                 >
                   Log out

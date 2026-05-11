@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TopNav from "../components/TopNav";
 import { getReport, deleteReport } from "../services/api";
@@ -6,6 +6,7 @@ import type { FullReport } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import generateReportPDF from "../utils/generateReportPDF";
 import MetricTooltip from "../components/MetricTooltip";
+import { useFocusTrap } from "../hooks/useFocusTrap";
 
 function ResultsPage() {
   const { reportId } = useParams<{ reportId: string }>();
@@ -20,6 +21,11 @@ function ResultsPage() {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
+
+  const cancelDeleteButtonRef = useRef<HTMLButtonElement>(null);
+  const deleteModalRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(deleteModalRef, showDeleteModal);
 
   useEffect(() => {
     if (!reportId) {
@@ -52,6 +58,23 @@ function ResultsPage() {
     }
   }, [report]);
 
+  useEffect(() => {
+    if (!showDeleteModal) return;
+
+    // Focus the Cancel button when modal opens (safer default than Delete)
+    cancelDeleteButtonRef.current?.focus();
+
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setShowDeleteModal(false);
+        setDeleteError("");
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, [showDeleteModal]);
+
   // ===== LOADING STATE =====
   if (loading) {
     return (
@@ -60,7 +83,8 @@ function ResultsPage() {
           <div className="font-display text-5xl mb-4">
             Int<em className="italic text-accent">Wiz</em>
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+          <div role="status" aria-live="polite" className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            <span className="sr-only">Loading...</span>
             — Loading
           </div>
         </div>
@@ -73,15 +97,17 @@ function ResultsPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-frame px-12">
         <div className="text-center max-w-md">
-          <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
-            — Something went wrong
+          <div role="alert">
+            <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
+              — Something went wrong
+            </div>
+            <h1 className="font-display text-5xl mb-4">
+              Couldn't load <em className="italic text-accent">report</em>
+            </h1>
+            <p className="text-ink-soft mb-8">
+              {error || "The report you're looking for doesn't exist or couldn't be retrieved."}
+            </p>
           </div>
-          <h1 className="font-display text-5xl mb-4">
-            Couldn't load <em className="italic text-accent">report</em>
-          </h1>
-          <p className="text-ink-soft mb-8">
-            {error || "The report you're looking for doesn't exist or couldn't be retrieved."}
-          </p>
           <button
             onClick={() => navigate("/dashboard")}
             className="bg-ink text-page px-8 py-4 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors"
@@ -159,6 +185,8 @@ function ResultsPage() {
     <div className="min-h-screen bg-frame">
 
       <TopNav />
+
+      <main id="main-content">
 
       {/* ACTION BAR */}
       <div className="border-b border-line px-4 sm:px-8 lg:px-12 py-3 flex justify-end items-center gap-2 sm:gap-3 bg-frame">
@@ -612,14 +640,19 @@ function ResultsPage() {
         </div>
       </div>
 
+      </main>
+
       {/* DELETE CONFIRMATION MODAL */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6">
-          <div className="bg-frame border border-warn max-w-md w-full p-10">
+        <div className="fixed inset-0 bg-ink/40 backdrop-blur-sm flex items-center justify-center z-50 p-6" role="dialog" aria-modal="true" aria-labelledby="delete-modal-heading">
+          <div
+            ref={deleteModalRef}
+            className="bg-frame border border-warn max-w-md w-full p-10"
+          >
             <div className="font-mono text-xs uppercase tracking-widest text-warn mb-3">
               — Permanent action
             </div>
-            <h3 className="font-display text-3xl mb-4">
+            <h3 id="delete-modal-heading" className="font-display text-3xl mb-4">
               Delete this <em className="italic text-warn">report</em>?
             </h3>
             <p className="text-ink-soft text-sm leading-relaxed mb-2">
@@ -642,6 +675,7 @@ function ResultsPage() {
 
             <div className="flex gap-3">
               <button
+                ref={cancelDeleteButtonRef}
                 type="button"
                 onClick={() => {
                   setShowDeleteModal(false);

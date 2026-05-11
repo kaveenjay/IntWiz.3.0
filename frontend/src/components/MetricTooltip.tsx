@@ -121,6 +121,7 @@ function MetricTooltip({ title, description, details, methodologyAnchor }: Metri
           <div
             onMouseEnter={handleMouseEnter}
             onMouseLeave={handleMouseLeave}
+            role="tooltip"
             className="hidden sm:block absolute z-50 w-80 bg-frame border border-line-strong shadow-lg p-5 left-0 top-6"
           >
             <div className="font-mono text-[10px] uppercase tracking-widest text-ink-soft mb-2">

@@ -116,7 +116,8 @@ function ProfilePage() {
           <div className="font-display text-5xl mb-4">
             Int<em className="italic text-accent">Wiz</em>
           </div>
-          <div className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+          <div role="status" aria-live="polite" className="font-mono text-xs uppercase tracking-widest text-ink-soft">
+            <span className="sr-only">Loading...</span>
             — Loading
           </div>
         </div>
@@ -129,21 +130,23 @@ function ProfilePage() {
     return (
       <div className="min-h-screen bg-frame">
         <TopNav />
-        <div className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center text-center">
-          <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
-            — Something went wrong
+        <main id="main-content" className="min-h-[calc(100vh-65px)] flex flex-col items-center justify-center text-center">
+          <div role="alert">
+            <div className="font-mono text-xs uppercase tracking-widest text-warn mb-4">
+              — Something went wrong
+            </div>
+            <h1 className="font-display text-5xl mb-4">
+              Couldn't load <em className="italic text-accent">profile</em>
+            </h1>
+            <p className="text-ink-soft mb-8">{error}</p>
           </div>
-          <h1 className="font-display text-5xl mb-4">
-            Couldn't load <em className="italic text-accent">profile</em>
-          </h1>
-          <p className="text-ink-soft mb-8">{error}</p>
           <button
             onClick={() => window.location.reload()}
             className="bg-ink text-page px-8 py-4 font-mono text-sm uppercase tracking-widest hover:bg-accent transition-colors"
           >
             Try Again
           </button>
-        </div>
+        </main>
       </div>
     );
   }
@@ -157,11 +160,11 @@ function ProfilePage() {
     <div className="min-h-screen bg-frame">
       <TopNav />
 
-      <div className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
+      <main id="main-content" className="max-w-4xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
-          — Your account
+          <span aria-hidden="true">— </span>Your account
         </div>
         <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           Hello, <em className="italic text-accent">{user?.email?.split("@")[0]}</em>
@@ -308,7 +311,7 @@ function ProfilePage() {
           </button>
         </div>
 
-      </div>
+      </main>
     </div>
   );
 }

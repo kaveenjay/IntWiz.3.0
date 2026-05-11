@@ -8,11 +8,11 @@ function HelpPage() {
     <div className="min-h-screen bg-frame">
       <TopNav />
 
-      <div className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
+      <main id="main-content" className="max-w-3xl mx-auto px-6 sm:px-8 lg:px-12 py-8 lg:py-14">
 
         {/* HEADER */}
         <div className="font-mono text-xs uppercase tracking-widest text-ink-soft mb-3">
-          — Reference
+          <span aria-hidden="true">— </span>Reference
         </div>
         <h1 className="font-display text-5xl sm:text-6xl leading-none mb-4">
           <em className="italic text-accent">Help</em> & guide
@@ -367,7 +367,7 @@ function HelpPage() {
           </button>
         </div>
 
-      </div>
+      </main>
     </div>
   );
 }
