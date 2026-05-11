@@ -194,7 +194,7 @@ export const saveReport = async (
   userId: string,
   cvText: string,
   jdText: string,
-  interviewResults: any[],
+  interviewResults: QuestionResult[],
   targetQuestions: number
 ): Promise<SaveReportResponse> => {
   const formData = new FormData();

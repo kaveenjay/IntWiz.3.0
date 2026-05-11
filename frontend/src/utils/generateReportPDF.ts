@@ -1,5 +1,5 @@
 import { jsPDF } from "jspdf";
-import type { FullReport } from "../services/api";
+import type { FullReport, QuestionResult } from "../services/api";
 
 // ===== Page layout =====
 
@@ -61,7 +61,7 @@ function toRoman(num: number): string {
   return numerals[num - 1] || num.toString();
 }
 
-function calculateQuestionScore(q: any): number {
+function calculateQuestionScore(q: QuestionResult): number {
   return Math.round(
     q.relevance_score       * 0.25 +
     q.technical_depth_score * 0.20 +
@@ -258,7 +258,7 @@ function drawQuickStats(doc: jsPDF, report: FullReport, startY: number): number 
   return y;
 }
 
-function drawQuestionCard(doc: jsPDF, q: any, idx: number, startY: number): number {
+function drawQuestionCard(doc: jsPDF, q: QuestionResult, idx: number, startY: number): number {
   let y = ensureSpace(doc, startY, 50);
   const score = calculateQuestionScore(q);
   const textWidth = CONTENT_WIDTH - 10;

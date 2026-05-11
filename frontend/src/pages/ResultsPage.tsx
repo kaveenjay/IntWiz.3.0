@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import TopNav from "../components/TopNav";
 import { getReport, deleteReport } from "../services/api";
-import type { FullReport } from "../services/api";
+import type { FullReport, QuestionResult } from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
 import generateReportPDF from "../utils/generateReportPDF";
 import MetricTooltip from "../components/MetricTooltip";
@@ -142,7 +142,7 @@ function ResultsPage() {
     });
   };
 
-  const calculatePerQuestionScore = (q: any): number => {
+  const calculatePerQuestionScore = (q: QuestionResult): number => {
     return Math.round(
       q.relevance_score * 0.25 +
       q.technical_depth_score * 0.20 +
