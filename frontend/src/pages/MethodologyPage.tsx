@@ -1,8 +1,30 @@
-import { useNavigate, Link } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
 import TopNav from "../components/TopNav";
 
 function MethodologyPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Scroll to anchor section after page mounts (fixes React Router not
+  // handling hash anchors automatically on navigation)
+  useEffect(() => {
+    if (location.hash) {
+      // Remove the # from the hash
+      const id = location.hash.substring(1);
+      // Use a small timeout to ensure all content has rendered first
+      const timeoutId = setTimeout(() => {
+        const element = document.getElementById(id);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    } else {
+      // No hash → scroll to top of page on fresh load
+      window.scrollTo({ top: 0 });
+    }
+  }, [location.hash]);
 
   return (
     <div className="min-h-screen bg-frame">
