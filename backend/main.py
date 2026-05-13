@@ -452,27 +452,71 @@ Generate ONE opening question that:
 
 Return ONLY the question text, no preamble."""
 
+    # Subsequent questions: adaptive based on previous performance
     summary = _analyze_history(history)
-    return f"""You are an expert interviewer conducting an adaptive behavioral interview.
+    last_qa = history[-1]
+    last_transcript = last_qa['transcript'][:300]
+    last_overall = last_qa.get('overall_score', 50)
+
+    # Determine how to acknowledge the previous answer
+    if last_overall < 40:
+        acknowledgment_guidance = (
+            "The previous answer was weak (low quality or off-topic). "
+            "Briefly acknowledge this in a supportive, professional way "
+            "(e.g., 'I'd like to try a different angle...' or "
+            "'Let me give you another opportunity...'), then ask a simpler, "
+            "more concrete question."
+        )
+    elif last_overall < 60:
+        acknowledgment_guidance = (
+            "The previous answer was adequate but could be stronger. "
+            "Naturally transition (e.g., 'Building on that...' or "
+            "'Let's explore a related area...') and ask a follow-up that "
+            "encourages more specific examples."
+        )
+    elif last_overall >= 75:
+        acknowledgment_guidance = (
+            "The previous answer was strong. "
+            "Briefly acknowledge this (e.g., 'That's a solid example. "
+            "Now let me push you on...' or 'Great context. I want to "
+            "explore...') and challenge them with a deeper follow-up."
+        )
+    else:
+        acknowledgment_guidance = (
+            "The previous answer was decent. Transition naturally "
+            "(e.g., 'Thanks. Let's move to...' or 'Good. I'd now like "
+            "to ask about...') and probe a different competency."
+        )
+
+    return f"""You are an expert interviewer conducting an adaptive behavioral interview. You acknowledge each answer naturally before asking the next question, like a real interviewer would.
 
 PREVIOUS CONVERSATION:
 {_format_history_for_llm(history)}
+
+CANDIDATE'S MOST RECENT ANSWER (full excerpt):
+"{last_transcript}"
 
 PERFORMANCE ANALYSIS:
 - Average relevance:       {summary['avg_relevance']}/100
 - Average STAR structure:  {summary['avg_star']}/100
 - Average technical depth: {summary['avg_technical']}/100
+- Most recent answer overall score: {round(last_overall)}/100
 - Trend: {summary['trend']}
 
 TOPICS ALREADY COVERED:
 {chr(10).join(f'- {t}' for t in summary['topics_covered'])}
 
-Generate the NEXT question that:
+YOUR TASK:
+{acknowledgment_guidance}
+
+After your acknowledgment, ask ONE new question that:
 1. {_directive_for_performance(summary)}
-2. Probes deeper into specific skills claimed in the CV but not yet demonstrated
+2. Hasn't been covered yet
 3. Invites a STAR-style answer (Situation, Task, Action, Result)
 
-Return ONLY the question text, no explanation."""
+Format your response as a single conversational message: brief acknowledgment + the question. Do not use labels like "Acknowledgment:" or "Question:". Sound like a human interviewer.
+
+Return ONLY the spoken text the interviewer would say."""
 
 
 def _should_stop_interview(
@@ -579,6 +623,7 @@ async def save_report(
     jd_text: str = Form(""),
     interview_results: str = Form(...),
     target_questions: int = Form(0),
+    mode: str = Form("adaptive"),
 ):
     """
     Persists a completed interview session to Firestore.
@@ -652,8 +697,8 @@ Provide constructive feedback highlighting one strength and one area for improve
             "dominant_emotion":      dominant_emotion,
             "ai_summary":            ai_summary,
             "question_count":        n,
-            "target_questions":      target_questions,
-            "mode":                  "fixed" if target_questions > 0 else "adaptive",
+            "target_questions":      target_questions if mode == "fixed" else 0,
+            "mode":                  mode,
             "average_relevance":     round(avg_relevance,  1),
             "average_fluency":       round(avg_fluency,    1),
             "average_technical_depth": round(avg_technical, 1),

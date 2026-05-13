@@ -221,7 +221,8 @@ function InterviewRoomPage() {
           config.cvText,
           config.jdText,
           interviewResults,
-          config.targetQuestions
+          config.targetQuestions,
+          config.mode
         ),
         minDelay,
       ]);

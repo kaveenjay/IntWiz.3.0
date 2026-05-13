@@ -195,7 +195,8 @@ export const saveReport = async (
   cvText: string,
   jdText: string,
   interviewResults: QuestionResult[],
-  targetQuestions: number
+  targetQuestions: number,
+  mode: "adaptive" | "fixed"
 ): Promise<SaveReportResponse> => {
   const formData = new FormData();
   formData.append("user_id", userId);
@@ -203,6 +204,7 @@ export const saveReport = async (
   formData.append("jd_text", jdText);
   formData.append("interview_results", JSON.stringify(interviewResults));
   formData.append("target_questions", targetQuestions.toString());
+  formData.append("mode", mode);
 
   const response = await api.post<SaveReportResponse>("/save-report/", formData);
   return response.data;
