@@ -1,12 +1,28 @@
-fastapi
-uvicorn
-python-multipart
-librosa
-numpy
-scikit-learn
-tensorflow
-joblib
-python-dotenv
-groq
-pymupdf
+# IntWiz Backend Dependencies
+# Pinned for reproducible builds across development and production
+
+# Web framework
+fastapi==0.129.0
+uvicorn==0.40.0
+python-multipart==0.0.22
+
+# Audio processing
+librosa==0.11.0
+numpy==2.3.5
+
+# Machine learning
+scikit-learn==1.8.0
+tensorflow==2.20.0
+joblib==1.5.3
+
+# AI / LLM
+groq==1.1.2
+
+# PDF / document processing
+PyMuPDF==1.27.2.2
+
+# Configuration
+python-dotenv==1.2.2
+
+# Firebase (Admin SDK)
 firebase-admin==6.5.0

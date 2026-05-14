@@ -88,10 +88,23 @@ app = FastAPI(
     description="Backend server for the IntWiz AI Interview Platform"
 )
 
-# CORS Middleware (Cross-Origin Resource Sharing)
+# CORS Middleware
+# Reads allowed origins from FRONTEND_URLS env var (comma-separated).
+# Defaults to localhost dev origins when env var is not set.
+_allowed_origins_env = os.getenv("FRONTEND_URLS", "")
+if _allowed_origins_env:
+    allowed_origins = [origin.strip() for origin in _allowed_origins_env.split(",")]
+else:
+    # Development defaults — typical Vite/CRA dev server ports
+    allowed_origins = [
+        "http://localhost:5175",
+        "http://localhost:5173",
+        "http://localhost:3000",
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production this will be restricted the frontend URL
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

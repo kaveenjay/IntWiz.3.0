@@ -232,8 +232,9 @@ firebase-debug.log
 # Environment and secrets
 .env
 serviceAccountKey.json
-*.json
-!package.json
+firebase-credentials.json
+*-credentials.json
+*-key.json
 
 # Python
 __pycache__/
@@ -254,3 +255,9 @@ build/
 *.m4a
 *.ogg
 *.mp4
+
+# Hugging Face Spaces deployment folder (separate repo)
+hf-intwiz/
+
+# Claude Code state files
+.claude/

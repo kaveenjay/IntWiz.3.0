@@ -1,7 +1,8 @@
 import axios from "axios";
 
-// Backend URL — change this when you deploy
-const API_BASE_URL = "http://127.0.0.1:8000";
+// Backend URL — reads from env var in production, falls back to localhost for dev.
+// Set VITE_API_URL in Vercel deployment to point to Hugging Face Spaces backend.
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000";
 
 // Create an axios instance with default config
 const api = axios.create({
